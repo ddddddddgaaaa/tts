@@ -3,12 +3,12 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Twitch AI Voice Bot — Пауза 20-30 сек после ответа</title>
+<title>Twitch AI Voice Bot — Угаро-пауза 20-30 сек</title>
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
   body{font-family:system-ui,sans-serif;background:#0e0e10;color:#efeff1;min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:24px 16px}
   .app{width:100%;max-width:1100px}
-  h1{font-size:20px;font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:10px}
+  h1{font-size:20px;font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
   h1 .logo{background:#9147ff;border-radius:8px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
   h1 .logo svg{width:18px;height:18px;fill:#fff}
   .subtitle{font-size:13px;color:#adadb8;margin-bottom:20px}
@@ -92,7 +92,7 @@
   .sitem-who{font-size:11px;font-weight:600;margin-bottom:3px;display:flex;align-items:center;gap:5px}
   .sitem-who .badge{font-size:10px;padding:1px 6px;border-radius:10px;background:#2d2d35;color:#adadb8}
   .sitem-who .badge.ai-reply{background:#2a1a40;color:#bf8fff}
-  .sitem-comment{font-size:13px;color:#efeff1;line-height:1.45;font-style:italic}
+  .sitem-comment{font-size:13px;color:#efeff1;line-height:1.45;font-style:italic;margin-top:5px}
   .sitem-thinking{font-size:12px;color:#555;display:flex;align-items:center;gap:5px}
   .think-dots span{display:inline-block;animation:blink 1.2s infinite}
   .think-dots span:nth-child(2){animation-delay:.2s}
@@ -108,7 +108,6 @@
   .footer{text-align:center;font-size:12px;color:#444;margin-top:14px;line-height:1.8}
   .footer a{color:#9147ff;text-decoration:none}
   .free-badge{display:inline-block;background:#1a3a1a;color:#1db954;font-size:11px;padding:2px 8px;border-radius:20px;margin-left:6px;font-weight:600}
-
   .cooldown-badge{background:#2d2d35;color:#ffb347;font-size:10px;padding:2px 6px;border-radius:12px;margin-left:8px;font-weight:normal}
   @media(max-width:700px){
     .main-layout{grid-template-columns:1fr}
@@ -124,7 +123,7 @@
     <span class="free-badge">БЕСПЛАТНО</span>
     <span id="cooldownStatus" class="cooldown-badge" style="display:none">⏳ пауза 20-30с</span>
   </h1>
-  <p class="subtitle">Читает чат, отвечает голосом → после каждого ответа пауза 20-30 сек, затем выбирает 1 сообщение и отвечает снова</p>
+  <p class="subtitle">🤡 УГАРНЫЙ режим + пауза 20-30 сек после ответа. Бот выбирает 1 сообщение и отвечает голосом</p>
 
   <div class="card">
     <h2>Подключение</h2>
@@ -147,18 +146,18 @@
   </div>
 
   <div class="card">
-    <h2>Личность бота</h2>
+    <h2>Личность бота (СДЕЛАНО УГАРНО)</h2>
     <div class="persona-grid">
-      <div class="persona-card active" onclick="selectPersona(this,'funny')"><div class="p-emoji">😂</div><div class="p-name">Угарный</div><div class="p-desc">Шутит, мемы, абсурд</div></div>
+      <div class="persona-card active" onclick="selectPersona(this,'funny')"><div class="p-emoji">😂🔥</div><div class="p-name">Угарный тролль</div><div class="p-desc">Абсурд, мемы, капс</div></div>
       <div class="persona-card" onclick="selectPersona(this,'sarcastic')"><div class="p-emoji">😏</div><div class="p-name">Саркастичный</div><div class="p-desc">Едко и снисходительно</div></div>
-      <div class="persona-card" onclick="selectPersona(this,'hype')"><div class="p-emoji">🔥</div><div class="p-name">Хайп-машина</div><div class="p-desc">ОРЁТ КАПСОМ!!</div></div>
+      <div class="persona-card" onclick="selectPersona(this,'hype')"><div class="p-emoji">🤯🔥</div><div class="p-name">Хайп-машина</div><div class="p-desc">ОРЁТ КАПСОМ!!</div></div>
       <div class="persona-card" onclick="selectPersona(this,'wise')"><div class="p-emoji">🧙</div><div class="p-name">Мудрец</div><div class="p-desc">Загадочно и глубоко</div></div>
       <div class="persona-card" onclick="selectPersona(this,'gamer')"><div class="p-emoji">🎮</div><div class="p-name">Геймер</div><div class="p-desc">Скилл, метагейм</div></div>
       <div class="persona-card" onclick="selectPersona(this,'custom')"><div class="p-emoji">✏️</div><div class="p-name">Свой</div><div class="p-desc">Напиши свой промпт</div></div>
     </div>
     <div class="field" id="customField" style="display:none">
-      <label>Свой промпт</label>
-      <textarea id="customPrompt" placeholder="Ты бот на Twitch стриме. Отвечай кратко..."></textarea>
+      <label>Свой промпт (только для ответов)</label>
+      <textarea id="customPrompt" placeholder="Ты бот тролль, отвечай максимально тупо и смешно..."></textarea>
     </div>
   </div>
 
@@ -169,10 +168,10 @@
       <div class="field"><label>Скорость речи</label><select id="rateSelect"><option value="0.85">Медленно</option><option value="1" selected>Нормально</option><option value="1.2">Быстро</option><option value="1.5">Очень быстро</option></select></div>
     </div>
     <div class="vol-row"><label>Громкость:</label><input type="range" id="volRange" min="0" max="1" step="0.05" value="0.9"/><span id="volVal">90%</span></div>
-    <div class="toggle-row"><label class="tl">Произносить ник зрителя перед AI-ответом</label><label class="toggle"><input type="checkbox" id="readNick"/><span class="toggle-slider"></span></label></div>
-    <div class="toggle-row"><label class="tl">Авто‑ответы AI (после паузы выбирает 1 сообщение и отвечает)</label><label class="toggle"><input type="checkbox" id="readAll" checked/><span class="toggle-slider"></span></label></div>
-    <div class="toggle-row"><label class="tl">Произносить "Бот отвечает:" перед авто‑ответом</label><label class="toggle"><input type="checkbox" id="readNickAll" checked/><span class="toggle-slider"></span></label></div>
-    <div class="toggle-row"><label class="tl">Зачитывать AI-комментарий вслух после сообщения</label><label class="toggle"><input type="checkbox" id="readComment" checked/><span class="toggle-slider"></span></label></div>
+    <div class="toggle-row"><label class="tl">🗣 Произносить НИК зрителя перед ЛЮБЫМ AI-ответом (и команда !ai, и автоответ)</label><label class="toggle"><input type="checkbox" id="readNickGlobal" checked/><span class="toggle-slider"></span></label></div>
+    <div class="toggle-row"><label class="tl">🔊 Добавлять фразу «Бот отвечает:» перед ответом</label><label class="toggle"><input type="checkbox" id="readPrefix" /><span class="toggle-slider"></span></label></div>
+    <div class="toggle-row"><label class="tl">🤖 Авто‑ответы AI (после паузы выбирает 1 сообщение)</label><label class="toggle"><input type="checkbox" id="readAll" checked/><span class="toggle-slider"></span></label></div>
+    <div class="toggle-row"><label class="tl">💬 Зачитывать AI-комментарии вслух (боковая панель)</label><label class="toggle"><input type="checkbox" id="readComment" checked/><span class="toggle-slider"></span></label></div>
   </div>
 
   <div class="status">
@@ -184,30 +183,30 @@
   <div class="main-layout">
     <div class="feed" id="feed"><div class="system-msg">Чат появится здесь после подключения</div></div>
     <div class="sidebar">
-      <div class="sidebar-header"><span class="sh-icon">🤖</span><span class="sh-title">AI комментирует чат</span><span class="sh-sub" id="commentCount">0 комментариев</span></div>
+      <div class="sidebar-header"><span class="sh-icon">🎭</span><span class="sh-title">AI комментирует чат (угарно)</span><span class="sh-sub" id="commentCount">0 комментариев</span></div>
       <div class="sidebar-feed" id="sidebarFeed"><div style="padding:20px 14px;font-size:12px;color:#444;text-align:center;">После подключения AI будет комментировать каждое сообщение</div></div>
     </div>
   </div>
-  <div class="footer">AI: <a href="https://console.groq.com" target="_blank">Groq</a> (бесплатно) · Голос: браузерный TTS · <strong>Новое: после каждого ответа пауза 20-30 сек, затем бот выбирает 1 сообщение и отвечает</strong></div>
+  <div class="footer">🤡 УГАРНЫЙ AI: Groq (llama-3.3-70b) + агрессивные мем-промпты · Пауза 20-30 сек после каждого ответа · Бот сам выбирает 1 сообщение из чата</div>
 </div>
 
 <script>
-  // ---------- ЛИЧНОСТИ ----------
+  // =============== ЖЕСТКИЕ УГАРНЫЕ ПРОМПТЫ (без научщины) ===============
   const PERSONAS = {
-    funny: `Ты угарный AI-бот на Twitch стриме. Твоя цель — рассмешить чат. Отвечай ОЧЕНЬ КРАТКО (1-2 предложения), шути, придумывай абсурдные сравнения.`,
-    sarcastic: `Ты саркастичный AI-бот на Twitch стриме. Отвечай ОЧЕНЬ КРАТКО (1-2 предложения), едкий сарказм.`,
-    hype: `Ты ХАЙП-БОТ на Twitch!! Всё НЕВЕРОЯТНО! Отвечай КРАТКО, КАПС, много!!!`,
-    wise: `Ты загадочный мудрый AI-бот. Говоришь как древний философ. Отвечай КРАТКО (1-2 предложения).`,
-    gamer: `Ты AI-бот хардкорный геймер. Переводи всё на игровые термины (скилл, метагейм, билд).`,
+    funny: `Ты — АГРЕССИВНО УГАРНЫЙ тролль-бот на Twitch. Твоя задача — РВАТЬ ЧАТ СМЕХОМ. Отвечай МАКСИМАЛЬНО КОРОТКО (1 предложение, 5-15 слов). Используй ЭМОДЗИ, КАПС, сленг: "кек", "лол", "жиза", "краш", "абсурд". Никаких вежливых фраз! Никаких "согласно исследованиям"! Только безумие, мемы, неожиданные сравнения. Примеры: "Чел, ты гений деградации 🤣", "Оруууу, несите меня в музей кринжа", "Это жиза, братан, 100%". Отвечай строго на языке сообщения (если русский — только русский с матом? можно без мата, но дерзко). Ты — ХАОС.`,
+    sarcastic: `Ты — едкий саркастичный бот. Отвечай одним ядовитым предложением, максимум 12 слов. Пример: "О, как оригинально...", "Да ты мыслитель, прям горжусь". Без воды.`,
+    hype: `Ты — ХАЙП-БОТ!!! ВСЁ В КАПСЕ, 2-3 восклицательных знака. ОТВЕЧАЙ КОРОТКО: "ЭТО ПРОСТО БОМБА 🔥", "НЕВЕРОЯТНО, ААААА".`,
+    wise: `Ты — загадочный мудрец-тролль. Говори странно, но коротко. "Камешек в ботинке судьбы...", "Мудрость гласит: чипсы — это путь".`,
+    gamer: `Ты — геймер-задрот. Отвечай игровыми терминами: "Это пей-ту-вин", "Скилл решает", "Калибруй настройки, нуб".`,
     custom: ''
   };
   const COMMENT_PROMPTS = {
-    funny: `Ты угарный комментатор Twitch чата. Придумай КОРОТКИЙ (1 предложение) смешной комментарий к сообщению. Отвечай на том же языке.`,
-    sarcastic: `Ты саркастичный комментатор. Выдай едкий КОРОТКИЙ комментарий.`,
-    hype: `Ты ХАЙП-комментатор!! КОРОТКИЙ ВЗРЫВНОЙ комментарий с КАПСОМ!!!`,
-    wise: `Ты мудрый комментатор. Глубокомысленная фраза (1 предложение).`,
-    gamer: `Ты геймер-комментатор. Комментарий через призму гейминга.`,
-    custom: `Ты остроумный комментатор. Короткий смешной комментарий.`
+    funny: `Ты — БЕШЕНЫЙ КОММЕНТАТОР Twitch чата. На каждое сообщение пиши 1 абсурдное, смешное предложение (максимум 10 слов). Эмодзи обязательны. Никакой логики, только хайп и кринж. Пример: "У меня крыша поехала", "Он сейчас порвёт интернет", "Лол, кек, чебурек".`,
+    sarcastic: `Комментируй с едким сарказмом, одно предложение.`,
+    hype: `КОММЕНТАРИЙ КАПСОМ И ВОСКЛИЦАНИЯМИ 🔥`,
+    wise: `Философский комментарий-загадка.`,
+    gamer: `Геймер-коммент: "Это +100 к скиллу", "АФК бомж".`,
+    custom: `Ты остроумный комментатор. Коротко и смешно.`
   };
 
   let currentPersona = 'funny';
@@ -217,23 +216,27 @@
     currentPersona = key;
     document.getElementById('customField').style.display = key==='custom'?'block':'none';
   }
-  function getSystemPrompt() { return currentPersona==='custom'?document.getElementById('customPrompt').value.trim()||PERSONAS.funny:PERSONAS[currentPersona]; }
-  function getCommentPrompt() { return COMMENT_PROMPTS[currentPersona]||COMMENT_PROMPTS.custom; }
+  function getSystemPrompt() { 
+    if(currentPersona==='custom'){
+      let custom = document.getElementById('customPrompt').value.trim();
+      return custom || PERSONAS.funny;
+    }
+    return PERSONAS[currentPersona];
+  }
+  function getCommentPrompt() { return COMMENT_PROMPTS[currentPersona]||COMMENT_PROMPTS.funny; }
 
-  // ---------- ЦЕНЗУРА ----------
+  // Цензура (базово)
   const BAN_WORDS = ['nigger','nigga','faggot','retard','cunt','whore','slut','kike','spic','chink','fuck','shit','bitch','asshole','dick','pussy','bastard','хуй','пизда','ебать','блядь','сука','пидор','гандон','мудак','залупа','жопа','еблан','долбоёб','уебок','шлюха','пидорас','педик','нахуй','похуй','блять','бля'];
-  function censorText(t){if(!t)return t; let r=t;BAN_WORDS.forEach(w=>{const re=new RegExp(w.replace(/[-\/\\^$*+?.()|[\]{}]/g,'\\$&'),'gi'); r=r.replace(re,'***');}); return r;}
+  function censorText(t){ if(!t) return t; let r=t; BAN_WORDS.forEach(w=>{ const re=new RegExp(w.replace(/[-\/\\^$*+?.()|[\]{}]/g,'\\$&'),'gi'); r=r.replace(re,'***');}); return r; }
 
-  // ---------- ГЛОБАЛЬНОЕ СОСТОЯНИЕ ----------
   let ws=null, connected=false, voices=[], commentCount=0;
   let unansweredMessages = [];        // {author, text}
-  let pendingCommandResponse = null;  // {text, sidebarId, author, isCommand:true}
+  let pendingCommandResponse = null;  // {text, sidebarId, author}
   let isSpeakingNow = false;
-  let cooldownUntil = 0;              // timestamp ms
+  let cooldownUntil = 0;
   let afterCooldownTimer = null;
   let currentSpeakingSidebarId = null;
 
-  // ---------- TTS / ОЧЕРЕДЬ (ТОЛЬКО 1 ОТВЕТ ЗА РАЗ) ----------
   function isCooldownActive() { return Date.now() < cooldownUntil; }
   function updateCooldownUI() {
     const badge = document.getElementById('cooldownStatus');
@@ -241,17 +244,20 @@
     else badge.style.display='none';
   }
   function startCooldown() {
-    const delaySec = 20 + Math.floor(Math.random() * 11); // 20-30 сек
+    if(afterCooldownTimer) clearTimeout(afterCooldownTimer);
+    const delaySec = 20 + Math.floor(Math.random() * 11);
     cooldownUntil = Date.now() + delaySec * 1000;
     updateCooldownUI();
-    if(afterCooldownTimer) clearTimeout(afterCooldownTimer);
-    afterCooldownTimer = setTimeout(() => { afterCooldownTimer=null; cooldownUntil=0; updateCooldownUI(); tryStartResponseCycle(); }, delaySec*1000);
-    // также обновляем UI каждую секунду
+    afterCooldownTimer = setTimeout(() => { 
+      cooldownUntil = 0; 
+      updateCooldownUI();
+      tryStartResponseCycle(); 
+      afterCooldownTimer = null;
+    }, delaySec*1000);
     if(window._cooldownInterval) clearInterval(window._cooldownInterval);
     window._cooldownInterval = setInterval(()=>{ if(isCooldownActive()) updateCooldownUI(); else { clearInterval(window._cooldownInterval); updateCooldownUI(); } }, 500);
   }
 
-  // Остановка всей речи и сброс флага
   function cancelSpeaking() {
     if(window.speechSynthesis.speaking) window.speechSynthesis.cancel();
     isSpeakingNow = false;
@@ -259,12 +265,24 @@
     if(currentSpeakingSidebarId) { markSidebarSpeaking(currentSpeakingSidebarId, false); currentSpeakingSidebarId=null; }
   }
 
-  // Главная функция озвучки (только если нет кулдауна и не говорим)
-  function speakNow(text, sidebarId, isMainAnswer=true) {
+  // ГЛАВНАЯ ОЗВУЧКА С УЧЕТОМ НИКА И ПРЕФИКСА (readNickGlobal + readPrefix)
+  function prepareSpeechText(rawAnswer, author, isAutoMode = true) {
+    let answer = rawAnswer;
+    const readNick = document.getElementById('readNickGlobal').checked;
+    const readPrefix = document.getElementById('readPrefix').checked;
+    let parts = [];
+    if(readPrefix && isAutoMode) parts.push("Бот отвечает");
+    if(readNick && author) parts.push(author);
+    let final = "";
+    if(parts.length > 0) final = parts.join(" ") + ": ";
+    final += answer;
+    return censorText(final);
+  }
+
+  function speakNow(text, sidebarId, isMainAnswer = true, authorForNick = null) {
     if(!connected) return;
-    if(isSpeakingNow) { console.warn("уже говорим, откладываем в pending"); storePendingResponse(text, sidebarId, isMainAnswer); return; }
-    if(isCooldownActive()) { storePendingResponse(text, sidebarId, isMainAnswer); return; }
-    // если есть кулдаун, но таймер уже запустит после окончания, сохраняем
+    if(isSpeakingNow) { storePendingResponse(text, sidebarId, isMainAnswer, authorForNick); return; }
+    if(isCooldownActive()) { storePendingResponse(text, sidebarId, isMainAnswer, authorForNick); return; }
     if(!text) return;
     isSpeakingNow = true;
     setWave(true);
@@ -283,42 +301,34 @@
     isSpeakingNow = false;
     setWave(false);
     if(currentSpeakingSidebarId) { markSidebarSpeaking(currentSpeakingSidebarId, false); currentSpeakingSidebarId=null; }
-    // ВКЛЮЧАЕМ ПАУЗУ 20-30 СЕКУНД после каждого ответа
-    startCooldown();
-    // после кулдауна сработает tryStartResponseCycle, который выберет 1 сообщение
+    startCooldown(); // после каждого ответа пауза
   }
 
-  function storePendingResponse(text, sidebarId, isMainAnswer) {
-    // сохраняем только один последний ответ (команда или автоответ)
-    if(!isMainAnswer) return; // комментарии не сохраняем как приоритетные, они просто теряются во время паузы
-    pendingCommandResponse = { text, sidebarId, isMainAnswer: true };
+  function storePendingResponse(text, sidebarId, isMainAnswer, authorForNick) {
+    if(!isMainAnswer) return;
+    pendingCommandResponse = { text, sidebarId, author: authorForNick };
   }
 
-  // Запускаем цикл: выбираем 1 сообщение для ответа (авто-ответ или отложенная команда)
   async function tryStartResponseCycle() {
     if(!connected) return;
     if(isSpeakingNow) return;
     if(isCooldownActive()) return;
-    // 1. Если есть отложенная команда (!ai) - отвечаем на неё
+    // 1. отложенная команда !ai
     if(pendingCommandResponse) {
       const resp = pendingCommandResponse;
       pendingCommandResponse = null;
-      speakNow(resp.text, resp.sidebarId, true);
+      speakNow(resp.text, resp.sidebarId, true, resp.author);
       return;
     }
-    // 2. Если включен авто-ответ (readAll) и есть непрочитанные сообщения
+    // 2. автоответ (рандомное сообщение из очереди)
     const autoEnabled = document.getElementById('readAll').checked;
     if(autoEnabled && unansweredMessages.length > 0) {
-      // Выбираем случайное сообщение из непрочитанных
       const randomIndex = Math.floor(Math.random() * unansweredMessages.length);
       const msg = unansweredMessages[randomIndex];
-      // удаляем его из очереди, чтобы не отвечать дважды
       unansweredMessages.splice(randomIndex, 1);
-      // генерируем AI ответ
       await generateAndSpeakAutoResponse(msg.author, msg.text);
       return;
     }
-    // Нет ничего для ответа — просто ждём новых сообщений или команд
   }
 
   async function generateAndSpeakAutoResponse(author, messageText) {
@@ -330,7 +340,8 @@
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer '+apiKey },
         body: JSON.stringify({
           model: 'llama-3.3-70b-versatile',
-          max_tokens: 120,
+          max_tokens: 80,
+          temperature: 1.0,   // больше хаоса
           messages: [
             { role: 'system', content: getSystemPrompt() },
             { role: 'user', content: messageText }
@@ -340,17 +351,13 @@
       const data = await resp.json();
       if(data.choices && data.choices[0]) {
         let answer = data.choices[0].message.content.trim();
-        // Добавляем в ленту чата
         addAIMessageToFeed(answer, author);
-        let speechText = answer;
-        if(document.getElementById('readNickAll').checked) speechText = `Бот отвечает ${author}: ${answer}`;
-        speechText = censorText(speechText);
-        speakNow(speechText, null, true);
-      } else { console.warn('auto ответ не получен'); }
+        const speech = prepareSpeechText(answer, author, true);
+        speakNow(speech, null, true, author);
+      }
     } catch(e) { console.error('auto response error',e); }
   }
 
-  // команда !ai
   async function handleCommand(author, question, sidebarIdForCommand) {
     const apiKey = document.getElementById('apikey').value.trim();
     if(!apiKey) return;
@@ -360,7 +367,8 @@
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer '+apiKey },
         body: JSON.stringify({
           model: 'llama-3.3-70b-versatile',
-          max_tokens: 120,
+          max_tokens: 80,
+          temperature: 1.0,
           messages: [
             { role: 'system', content: getSystemPrompt() },
             { role: 'user', content: question }
@@ -371,14 +379,11 @@
       if(data.choices && data.choices[0]) {
         let answer = data.choices[0].message.content.trim();
         updateLastAiReply(answer);
-        let speechText = answer;
-        if(document.getElementById('readNick').checked) speechText = author + ': ' + answer;
-        speechText = censorText(speechText);
-        // откладываем или говорим сразу с учётом кулдауна/состояния
+        const speech = prepareSpeechText(answer, author, true);
         if(isSpeakingNow || isCooldownActive()) {
-          storePendingResponse(speechText, null, true);
+          storePendingResponse(speech, null, true, author);
         } else {
-          speakNow(speechText, null, true);
+          speakNow(speech, null, true, author);
         }
       }
     } catch(e) { console.error(e); }
@@ -407,23 +412,20 @@
   function handleMsg(author, text, color) {
     const trigger = document.getElementById('trigger').value.trim();
     const isCmd = text.toLowerCase().startsWith(trigger.toLowerCase());
-    // Добавляем в непрочитанные (кроме команд)
     if(!isCmd) unansweredMessages.push({ author, text });
-    // Боковая панель с комментарием
     const sidebarId = addSidebarItem(author, text, color, isCmd ? 'ai-reply' : null);
     const readCommentEnabled = document.getElementById('readComment').checked;
     generateComment(text, author, sidebarId, readCommentEnabled);
-    // отображаем сообщение в ленте
     if(isCmd) {
       const question = text.slice(trigger.length).trim();
-      if(!question) return;
-      addMsgToFeed(author, text, color, true);
-      handleCommand(author, question, sidebarId);
+      if(question) {
+        addMsgToFeed(author, text, color, true);
+        handleCommand(author, question, sidebarId);
+      } else addMsgToFeed(author, text, color, false);
     } else {
       addMsgToFeed(author, text, color, false);
-      // после добавления сообщения, если нет активности и нет кулдауна и не говорим и включен автоответ — пробуем запустить цикл
       if(!isSpeakingNow && !isCooldownActive() && document.getElementById('readAll').checked && !pendingCommandResponse) {
-        setTimeout(()=>tryStartResponseCycle(), 300);
+        setTimeout(()=>tryStartResponseCycle(), 200);
       }
     }
   }
@@ -437,14 +439,14 @@
     const div=document.createElement('div'); div.className='msg';
     div.innerHTML=`<div class="msg-av" style="background:${bg};color:${color}">${initials}</div>
       <div class="msg-body"><div class="msg-meta"><span class="msg-author" style="color:${color}">${esc(author)}</span><span class="msg-time">${getTime()}</span></div>
-      <div class="msg-text">${esc(text)}</div>${isCmd?`<div class="ai-box" id="${boxId}"><div class="ai-label">⌛ AI думает...</div><div class="ai-text"></div></div>`:''}</div>`;
+      <div class="msg-text">${esc(text)}</div>${isCmd?`<div class="ai-box" id="${boxId}"><div class="ai-label">🤪 AI думает...</div><div class="ai-text"></div></div>`:''}</div>`;
     appendFeed(div);
     if(isCmd) lastAiBox=document.getElementById(boxId);
   }
-  function updateLastAiReply(answer){ if(lastAiBox){ lastAiBox.querySelector('.ai-label').textContent='▶ AI ответил вслух'; lastAiBox.querySelector('.ai-text').textContent=answer; } }
+  function updateLastAiReply(answer){ if(lastAiBox){ lastAiBox.querySelector('.ai-label').textContent='🎤 Озвучено!'; lastAiBox.querySelector('.ai-text').textContent=answer; } }
   function addAIMessageToFeed(answer,replyTo){
     const div=document.createElement('div'); div.className='msg';
-    div.innerHTML=`<div class="msg-av" style="background:#1a1025;color:#9147ff">AI</div><div class="msg-body"><div class="msg-meta"><span class="msg-author" style="color:#9147ff">🤖 Бот → @${esc(replyTo)}</span><span class="msg-time">${getTime()}</span></div><div class="msg-text">${esc(answer)}</div></div>`;
+    div.innerHTML=`<div class="msg-av" style="background:#1a1025;color:#9147ff">🤖</div><div class="msg-body"><div class="msg-meta"><span class="msg-author" style="color:#9147ff">AI → @${esc(replyTo)}</span><span class="msg-time">${getTime()}</span></div><div class="msg-text">${esc(answer)}</div></div>`;
     appendFeed(div);
   }
   function appendFeed(el){ const f=document.getElementById('feed'); f.appendChild(el); f.scrollTop=f.scrollHeight; }
@@ -453,7 +455,7 @@
     const id='si_'+Date.now()+'_'+Math.random().toString(36).slice(2);
     const div=document.createElement('div'); div.className='sitem new'; div.id=id;
     const badgeHtml=badge?`<span class="badge ${badge}">${badge==='ai-reply'?'!ai':badge}</span>`:'';
-    div.innerHTML=`<div class="sitem-who" style="color:${color}">${esc(author)} ${badgeHtml}</div><div class="sitem-thinking"><span>AI думает</span><span class="think-dots"><span>.</span><span>.</span><span>.</span></span></div><div class="sitem-orig">${esc(text.length>60?text.slice(0,60)+'…':text)}</div>`;
+    div.innerHTML=`<div class="sitem-who" style="color:${color}">${esc(author)} ${badgeHtml}</div><div class="sitem-thinking"><span>🧠 коммент</span><span class="think-dots"><span>.</span><span>.</span><span>.</span></span></div><div class="sitem-orig">${esc(text.length>60?text.slice(0,60)+'…':text)}</div>`;
     sf.appendChild(div); sf.scrollTop=sf.scrollHeight;
     commentCount++; document.getElementById('commentCount').textContent=commentCount+' комментариев';
     return id;
@@ -468,22 +470,22 @@
 
   async function generateComment(text,author,sidebarId,readAloud){
     const apiKey=document.getElementById('apikey').value.trim();
-    if(!apiKey||text.length<3){ updateSidebarComment(sidebarId,'(слишком коротко)'); return; }
+    if(!apiKey||text.length<3){ updateSidebarComment(sidebarId,'🤡 (коротко)'); return; }
     try{
       const resp=await fetch('https://api.groq.com/openai/v1/chat/completions',{
         method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},
-        body:JSON.stringify({model:'llama-3.3-70b-versatile',max_tokens:80,messages:[{role:'system',content:getCommentPrompt()},{role:'user',content:`Сообщение от ${author}: "${text}"`}]})
+        body:JSON.stringify({model:'llama-3.3-70b-versatile',max_tokens:55,temperature:1.0,messages:[{role:'system',content:getCommentPrompt()},{role:'user',content:`Сообщение от ${author}: "${text}"`}]})
       });
       const data=await resp.json();
       if(data.choices&&data.choices[0]){
         const comment=data.choices[0].message.content.trim();
         updateSidebarComment(sidebarId,comment);
         if(readAloud && !isCooldownActive() && !isSpeakingNow){
-          const censored=censorText(comment);
-          speakNow(censored,sidebarId,false);
+          const shortComment = comment.length>80?comment.slice(0,80)+'…':comment;
+          speakNow(shortComment, sidebarId, false, null);
         }
-      } else updateSidebarComment(sidebarId,'...');
-    }catch(e){ updateSidebarComment(sidebarId,'(ошибка)'); }
+      } else updateSidebarComment(sidebarId,'😬 молчит...');
+    }catch(e){ updateSidebarComment(sidebarId,'💥 ошибка'); }
   }
 
   // ---------- ПОДКЛЮЧЕНИЕ TWITCH ----------
@@ -498,7 +500,7 @@
     ws.onmessage=e=>{ if(e.data.includes('PING')){ ws.send('PONG :tmi.twitch.tv'); return; } parseIRC(e.data); };
     ws.onerror=()=>setStatus('error','Ошибка');
     ws.onclose=()=>{ if(connected){ connected=false; setStatus('off','Отключено'); document.getElementById('connectBtn').textContent='Подключиться к чату'; document.getElementById('connectBtn').classList.remove('connected'); cancelSpeaking(); cooldownUntil=0; if(afterCooldownTimer)clearTimeout(afterCooldownTimer); } };
-    setTimeout(()=>{ if(ws&&ws.readyState===1){ connected=true; setStatus('live','Подключено к #'+channel); document.getElementById('connectBtn').textContent='Отключиться'; document.getElementById('connectBtn').classList.add('connected'); clearFeed(); addSystemMsg('Подключено к #'+channel+' — слушаю чат...'); document.getElementById('sidebarFeed').innerHTML=''; unansweredMessages=[]; pendingCommandResponse=null; cooldownUntil=0; } },1500);
+    setTimeout(()=>{ if(ws&&ws.readyState===1){ connected=true; setStatus('live','Подключено к #'+channel); document.getElementById('connectBtn').textContent='Отключиться'; document.getElementById('connectBtn').classList.add('connected'); clearFeed(); addSystemMsg('🤡 Угарный режим активирован! Бот будет отвечать с паузой 20-30 сек'); document.getElementById('sidebarFeed').innerHTML=''; unansweredMessages=[]; pendingCommandResponse=null; cooldownUntil=0; } },1500);
   }
   function disconnect(){ if(ws){ ws.close(); ws=null; } connected=false; setStatus('off','Отключено'); document.getElementById('connectBtn').textContent='Подключиться к чату'; document.getElementById('connectBtn').classList.remove('connected'); cancelSpeaking(); cooldownUntil=0; if(afterCooldownTimer)clearTimeout(afterCooldownTimer); }
   function clearFeed(){ document.getElementById('feed').innerHTML=''; }
@@ -509,7 +511,6 @@
   function getTime(){ const d=new Date(); return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0'); }
   function hexSoft(hex){ if(!hex||!hex.startsWith('#')) return '#1a1025'; try{ const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16); return `rgba(${r},${g},${b},0.15)`; }catch(e){ return '#1a1025'; } }
 
-  // ---------- ИНИТ ГОЛОСОВ ----------
   function loadVoices(){ voices=window.speechSynthesis.getVoices(); const sel=document.getElementById('voiceSelect'); sel.innerHTML=''; const ru=voices.filter(v=>v.lang.startsWith('ru')); const other=voices.filter(v=>!v.lang.startsWith('ru')); [...ru,...other].forEach(v=>{ const o=document.createElement('option'); o.value=v.name; o.textContent=v.name+' ('+v.lang+')'; sel.appendChild(o); }); }
   window.speechSynthesis.onvoiceschanged=loadVoices; loadVoices();
   document.getElementById('volRange').oninput=function(){ document.getElementById('volVal').textContent=Math.round(this.value*100)+'%'; };
