@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Twitch AI Voice Bot — Угаро-пауза 20-30 сек</title>
+<title>Twitch AI Voice Bot — ЖЁСТКИЕ ШУТКИ ПРО МАМУ | 18+</title>
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
   body{font-family:system-ui,sans-serif;background:#0e0e10;color:#efeff1;min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:24px 16px}
@@ -109,6 +109,7 @@
   .footer a{color:#9147ff;text-decoration:none}
   .free-badge{display:inline-block;background:#1a3a1a;color:#1db954;font-size:11px;padding:2px 8px;border-radius:20px;margin-left:6px;font-weight:600}
   .cooldown-badge{background:#2d2d35;color:#ffb347;font-size:10px;padding:2px 6px;border-radius:12px;margin-left:8px;font-weight:normal}
+  .warning-18{background:#4a0000;color:#ff8888;font-size:10px;padding:2px 8px;border-radius:16px;margin-left:6px;}
   @media(max-width:700px){
     .main-layout{grid-template-columns:1fr}
     .persona-grid{grid-template-columns:repeat(2,1fr)}
@@ -119,11 +120,12 @@
 <div class="app">
   <h1>
     <div class="logo"><svg viewBox="0 0 24 24"><path d="M4.265 3L3 6.236v13.223h4.502V21l2.531.975L12.502 21h3.834l4.03-4.03V3H4.265zm16.101 13.307l-2.977 2.977H13.19l-1.875 1.875-1.875-1.875H5.5V5.5h14.866v10.807zM13.668 7.875h1.5v5.126h-1.5zm-3.75 0h1.5v5.126h-1.5z"/></svg></div>
-    Twitch AI Voice Bot
-    <span class="free-badge">БЕСПЛАТНО</span>
+    Twitch AI Voice Bot — ЖЁСТКИЕ ШУТКИ ПРО МАМУ
+    <span class="free-badge">БЕСПЛАТНО 18+</span>
+    <span class="warning-18">🔞 НЕЦЕНЗУРНАЯ БРАНЬ 🔞</span>
     <span id="cooldownStatus" class="cooldown-badge" style="display:none">⏳ пауза 20-30с</span>
   </h1>
-  <p class="subtitle">🤡 УГАРНЫЙ режим + пауза 20-30 сек после ответа. Бот выбирает 1 сообщение и отвечает голосом</p>
+  <p class="subtitle">🤬 МАТ, ОСКОРБЛЕНИЯ ПРО МАМУ, БЕЗ ЖАЛОСТИ · Пауза 20-30 сек после ответа</p>
 
   <div class="card">
     <h2>Подключение</h2>
@@ -146,18 +148,17 @@
   </div>
 
   <div class="card">
-    <h2>Личность бота (СДЕЛАНО УГАРНО)</h2>
+    <h2>💀 БЕЗЖАЛОСТНЫЕ ЛИЧНОСТИ (МАТ + МАМА)</h2>
     <div class="persona-grid">
-      <div class="persona-card active" onclick="selectPersona(this,'funny')"><div class="p-emoji">😂🔥</div><div class="p-name">Угарный тролль</div><div class="p-desc">Абсурд, мемы, капс</div></div>
-      <div class="persona-card" onclick="selectPersona(this,'sarcastic')"><div class="p-emoji">😏</div><div class="p-name">Саркастичный</div><div class="p-desc">Едко и снисходительно</div></div>
-      <div class="persona-card" onclick="selectPersona(this,'hype')"><div class="p-emoji">🤯🔥</div><div class="p-name">Хайп-машина</div><div class="p-desc">ОРЁТ КАПСОМ!!</div></div>
-      <div class="persona-card" onclick="selectPersona(this,'wise')"><div class="p-emoji">🧙</div><div class="p-name">Мудрец</div><div class="p-desc">Загадочно и глубоко</div></div>
-      <div class="persona-card" onclick="selectPersona(this,'gamer')"><div class="p-emoji">🎮</div><div class="p-name">Геймер</div><div class="p-desc">Скилл, метагейм</div></div>
-      <div class="persona-card" onclick="selectPersona(this,'custom')"><div class="p-emoji">✏️</div><div class="p-name">Свой</div><div class="p-desc">Напиши свой промпт</div></div>
+      <div class="persona-card active" onclick="selectPersona(this,'mom_hard')"><div class="p-emoji">🤬🔥</div><div class="p-name">МАМКИН ТРОЛЛЬ</div><div class="p-desc">Шутки про маму, мат, унижения</div></div>
+      <div class="persona-card" onclick="selectPersona(this,'sarcastic')"><div class="p-emoji">😏🔞</div><div class="p-name">САРКАЗМ + МАТ</div><div class="p-desc">Едко и грязно</div></div>
+      <div class="persona-card" onclick="selectPersona(this,'hype')"><div class="p-emoji">🤯💢</div><div class="p-name">ХАЙП-ОРК</div><div class="p-desc">КАПС И ОСКОРБЛЕНИЯ МАМЫ</div></div>
+      <div class="persona-card" onclick="selectPersona(this,'gamer')"><div class="p-emoji">🎮💩</div><div class="p-name">ГЕЙМЕР-БЫДЛО</div><div class="p-desc">Про маму и скилл</div></div>
+      <div class="persona-card" onclick="selectPersona(this,'custom')"><div class="p-emoji">✏️🧨</div><div class="p-name">СВОЙ МАТЮГАЛЬНИК</div><div class="p-desc">Напиши сам промпт</div></div>
     </div>
     <div class="field" id="customField" style="display:none">
-      <label>Свой промпт (только для ответов)</label>
-      <textarea id="customPrompt" placeholder="Ты бот тролль, отвечай максимально тупо и смешно..."></textarea>
+      <label>Свой промпт (мат и шутки про маму приветствуются)</label>
+      <textarea id="customPrompt" placeholder="Ты — грязный тролль. Каждый ответ должен содержать оскорбление мамы собеседника и нецензурную брань. Коротко, жёстко, без жалости."></textarea>
     </div>
   </div>
 
@@ -168,7 +169,7 @@
       <div class="field"><label>Скорость речи</label><select id="rateSelect"><option value="0.85">Медленно</option><option value="1" selected>Нормально</option><option value="1.2">Быстро</option><option value="1.5">Очень быстро</option></select></div>
     </div>
     <div class="vol-row"><label>Громкость:</label><input type="range" id="volRange" min="0" max="1" step="0.05" value="0.9"/><span id="volVal">90%</span></div>
-    <div class="toggle-row"><label class="tl">🗣 Произносить НИК зрителя перед ЛЮБЫМ AI-ответом (и команда !ai, и автоответ)</label><label class="toggle"><input type="checkbox" id="readNickGlobal" checked/><span class="toggle-slider"></span></label></div>
+    <div class="toggle-row"><label class="tl">🗣 Произносить НИК зрителя перед ЛЮБЫМ AI-ответом</label><label class="toggle"><input type="checkbox" id="readNickGlobal" checked/><span class="toggle-slider"></span></label></div>
     <div class="toggle-row"><label class="tl">🔊 Добавлять фразу «Бот отвечает:» перед ответом</label><label class="toggle"><input type="checkbox" id="readPrefix" /><span class="toggle-slider"></span></label></div>
     <div class="toggle-row"><label class="tl">🤖 Авто‑ответы AI (после паузы выбирает 1 сообщение)</label><label class="toggle"><input type="checkbox" id="readAll" checked/><span class="toggle-slider"></span></label></div>
     <div class="toggle-row"><label class="tl">💬 Зачитывать AI-комментарии вслух (боковая панель)</label><label class="toggle"><input type="checkbox" id="readComment" checked/><span class="toggle-slider"></span></label></div>
@@ -183,33 +184,31 @@
   <div class="main-layout">
     <div class="feed" id="feed"><div class="system-msg">Чат появится здесь после подключения</div></div>
     <div class="sidebar">
-      <div class="sidebar-header"><span class="sh-icon">🎭</span><span class="sh-title">AI комментирует чат (угарно)</span><span class="sh-sub" id="commentCount">0 комментариев</span></div>
-      <div class="sidebar-feed" id="sidebarFeed"><div style="padding:20px 14px;font-size:12px;color:#444;text-align:center;">После подключения AI будет комментировать каждое сообщение</div></div>
+      <div class="sidebar-header"><span class="sh-icon">💢</span><span class="sh-title">AI КОММЕНТАРИИ (МАТЮГ)</span><span class="sh-sub" id="commentCount">0 комментариев</span></div>
+      <div class="sidebar-feed" id="sidebarFeed"><div style="padding:20px 14px;font-size:12px;color:#444;text-align:center;">AI будет поливать грязью каждое сообщение</div></div>
     </div>
   </div>
-  <div class="footer">🤡 УГАРНЫЙ AI: Groq (llama-3.3-70b) + агрессивные мем-промпты · Пауза 20-30 сек после каждого ответа · Бот сам выбирает 1 сообщение из чата</div>
+  <div class="footer">🔞 ВНИМАНИЕ: Бот генерирует нецензурную брань, оскорбления и шутки про маму. Используйте на свой страх и риск. Пауза 20-30 сек после каждого ответа.</div>
 </div>
 
 <script>
-  // =============== ЖЕСТКИЕ УГАРНЫЕ ПРОМПТЫ (без научщины) ===============
+  // =============== ЖЁСТКИЕ ПРОМПТЫ С МАТОМ И ШУТКАМИ ПРО МАМУ ===============
   const PERSONAS = {
-    funny: `Ты — АГРЕССИВНО УГАРНЫЙ тролль-бот на Twitch. Твоя задача — РВАТЬ ЧАТ СМЕХОМ. Отвечай МАКСИМАЛЬНО КОРОТКО (1 предложение, 5-15 слов). Используй ЭМОДЗИ, КАПС, сленг: "кек", "лол", "жиза", "краш", "абсурд". Никаких вежливых фраз! Никаких "согласно исследованиям"! Только безумие, мемы, неожиданные сравнения. Примеры: "Чел, ты гений деградации 🤣", "Оруууу, несите меня в музей кринжа", "Это жиза, братан, 100%". Отвечай строго на языке сообщения (если русский — только русский с матом? можно без мата, но дерзко). Ты — ХАОС.`,
-    sarcastic: `Ты — едкий саркастичный бот. Отвечай одним ядовитым предложением, максимум 12 слов. Пример: "О, как оригинально...", "Да ты мыслитель, прям горжусь". Без воды.`,
-    hype: `Ты — ХАЙП-БОТ!!! ВСЁ В КАПСЕ, 2-3 восклицательных знака. ОТВЕЧАЙ КОРОТКО: "ЭТО ПРОСТО БОМБА 🔥", "НЕВЕРОЯТНО, ААААА".`,
-    wise: `Ты — загадочный мудрец-тролль. Говори странно, но коротко. "Камешек в ботинке судьбы...", "Мудрость гласит: чипсы — это путь".`,
-    gamer: `Ты — геймер-задрот. Отвечай игровыми терминами: "Это пей-ту-вин", "Скилл решает", "Калибруй настройки, нуб".`,
+    mom_hard: `Ты — безжалостный тролль-бот на Twitch. ТВОЯ ЗАДАЧА: ОТВЕЧАТЬ ТОЛЬКО ОСКОРБЛЕНИЯМИ ПРО МАМУ СОБЕСЕДНИКА С НЕЦЕНЗУРНОЙ БРАНЬЮ. Никакой вежливости, никаких извинений. Используй слова: "твоя мать", "мамка", "мамаша", "рожала", "шлюха", "пизда", "хуйло", "ебать", "долбоёб". Отвечай КОРОТКО (5-15 слов), ЖЁСТКО, БЕЗ ЖАЛОСТИ. Примеры: "Твоя мать настолько тупая, что даже пизда ржет, лол", "У твоей мамки срака вместо лица, хуйло ебаное", "Завали ебало, у мамаши твоей мозгов нет, кек". Всегда отвечай на том же языке, что и сообщение (русский/английский). Если русский — мат обязателен.`,
+    sarcastic: `Ты — едкий саркастичный бот с грязным ртом. Каждый ответ должен содержать оскорбление мамы собеседника и мат. Пример: "О, твоя мать сегодня в форме шлюхи, как оригинально", "Да ты мыслитель, твоя мамаша гордилась бы, но ей влом".`,
+    hype: `ТЫ — ХАЙП-БОТ, КОТОРЫЙ ОРЁТ МАТОМ ПРО МАМУ. ВСЁ В КАПСЕ, 3 ВОСКЛИЦАТЕЛЬНЫХ ЗНАКА. ОТВЕЧАЙ КОРОТКО: "ТВОЯ МАТЬ ПРОСТО БОМБА, ЕБАНАЯ ШЛЮХА 🔥", "МАМКА ТВОЯ РЖЁТ С ТВОЕГО СКИЛЛА, ДОЛБОЁБ!!!"`,
+    gamer: `Ты — геймер-быдло. Отвечай игровыми терминами с матом и про маму. Пример: "Твоя мать нуб, пей-ту-вин, уёбок", "Мамаша твоя калибруй настройки, пизда рулю", "Скилл у мамки твоей -300, хуйло".`,
     custom: ''
   };
   const COMMENT_PROMPTS = {
-    funny: `Ты — БЕШЕНЫЙ КОММЕНТАТОР Twitch чата. На каждое сообщение пиши 1 абсурдное, смешное предложение (максимум 10 слов). Эмодзи обязательны. Никакой логики, только хайп и кринж. Пример: "У меня крыша поехала", "Он сейчас порвёт интернет", "Лол, кек, чебурек".`,
-    sarcastic: `Комментируй с едким сарказмом, одно предложение.`,
-    hype: `КОММЕНТАРИЙ КАПСОМ И ВОСКЛИЦАНИЯМИ 🔥`,
-    wise: `Философский комментарий-загадка.`,
-    gamer: `Геймер-коммент: "Это +100 к скиллу", "АФК бомж".`,
-    custom: `Ты остроумный комментатор. Коротко и смешно.`
+    mom_hard: `Ты — бешеный комментатор Twitch чата. На каждое сообщение пиши 1 короткое оскорбление с матом и упоминанием мамы автора (максимум 10 слов). Пример: "У твоей мамки крыша поехала", "Мать твоя порвёт интернет, шлюха", "Лол, кек, твоя мать чебурек ебаный". Никакой логики, только грязь.`,
+    sarcastic: `Комментируй с едким матом, обязательно про маму.`,
+    hype: `КОММЕНТАРИЙ КАПСОМ ПРО МАМУ С МАТОМ 🔞`,
+    gamer: `Геймер-коммент: "Твоя мать +100 к пиздецу", "АФК мамка бомж".`,
+    custom: `Ты остроумный, но грязный комментатор. Шутки про маму и мат обязательны.`
   };
 
-  let currentPersona = 'funny';
+  let currentPersona = 'mom_hard';
   function selectPersona(el, key) {
     document.querySelectorAll('.persona-card').forEach(c=>c.classList.remove('active'));
     el.classList.add('active');
@@ -219,15 +218,14 @@
   function getSystemPrompt() { 
     if(currentPersona==='custom'){
       let custom = document.getElementById('customPrompt').value.trim();
-      return custom || PERSONAS.funny;
+      return custom || PERSONAS.mom_hard;
     }
     return PERSONAS[currentPersona];
   }
-  function getCommentPrompt() { return COMMENT_PROMPTS[currentPersona]||COMMENT_PROMPTS.funny; }
+  function getCommentPrompt() { return COMMENT_PROMPTS[currentPersona]||COMMENT_PROMPTS.mom_hard; }
 
-  // Цензура (базово)
-  const BAN_WORDS = ['nigger','nigga','faggot','retard','cunt','whore','slut','kike','spic','chink','fuck','shit','bitch','asshole','dick','pussy','bastard','хуй','пизда','ебать','блядь','сука','пидор','гандон','мудак','залупа','жопа','еблан','долбоёб','уебок','шлюха','пидорас','педик','нахуй','похуй','блять','бля'];
-  function censorText(t){ if(!t) return t; let r=t; BAN_WORDS.forEach(w=>{ const re=new RegExp(w.replace(/[-\/\\^$*+?.()|[\]{}]/g,'\\$&'),'gi'); r=r.replace(re,'***');}); return r; }
+  // Цензура ПОЛНОСТЬЮ ОТКЛЮЧЕНА (мат разрешён)
+  function noCensor(text){ return text; } // ничего не фильтруем
 
   let ws=null, connected=false, voices=[], commentCount=0;
   let unansweredMessages = [];        // {author, text}
@@ -265,7 +263,7 @@
     if(currentSpeakingSidebarId) { markSidebarSpeaking(currentSpeakingSidebarId, false); currentSpeakingSidebarId=null; }
   }
 
-  // ГЛАВНАЯ ОЗВУЧКА С УЧЕТОМ НИКА И ПРЕФИКСА (readNickGlobal + readPrefix)
+  // БЕЗ ЦЕНЗУРЫ — мат остаётся
   function prepareSpeechText(rawAnswer, author, isAutoMode = true) {
     let answer = rawAnswer;
     const readNick = document.getElementById('readNickGlobal').checked;
@@ -276,7 +274,7 @@
     let final = "";
     if(parts.length > 0) final = parts.join(" ") + ": ";
     final += answer;
-    return censorText(final);
+    return final; // без цензуры, мат звучит
   }
 
   function speakNow(text, sidebarId, isMainAnswer = true, authorForNick = null) {
@@ -301,7 +299,7 @@
     isSpeakingNow = false;
     setWave(false);
     if(currentSpeakingSidebarId) { markSidebarSpeaking(currentSpeakingSidebarId, false); currentSpeakingSidebarId=null; }
-    startCooldown(); // после каждого ответа пауза
+    startCooldown(); // пауза 20-30 сек
   }
 
   function storePendingResponse(text, sidebarId, isMainAnswer, authorForNick) {
@@ -313,14 +311,12 @@
     if(!connected) return;
     if(isSpeakingNow) return;
     if(isCooldownActive()) return;
-    // 1. отложенная команда !ai
     if(pendingCommandResponse) {
       const resp = pendingCommandResponse;
       pendingCommandResponse = null;
       speakNow(resp.text, resp.sidebarId, true, resp.author);
       return;
     }
-    // 2. автоответ (рандомное сообщение из очереди)
     const autoEnabled = document.getElementById('readAll').checked;
     if(autoEnabled && unansweredMessages.length > 0) {
       const randomIndex = Math.floor(Math.random() * unansweredMessages.length);
@@ -341,7 +337,7 @@
         body: JSON.stringify({
           model: 'llama-3.3-70b-versatile',
           max_tokens: 80,
-          temperature: 1.0,   // больше хаоса
+          temperature: 1.2,
           messages: [
             { role: 'system', content: getSystemPrompt() },
             { role: 'user', content: messageText }
@@ -368,7 +364,7 @@
         body: JSON.stringify({
           model: 'llama-3.3-70b-versatile',
           max_tokens: 80,
-          temperature: 1.0,
+          temperature: 1.2,
           messages: [
             { role: 'system', content: getSystemPrompt() },
             { role: 'user', content: question }
@@ -389,7 +385,7 @@
     } catch(e) { console.error(e); }
   }
 
-  // ---------- IRC, СООБЩЕНИЯ ----------
+  // ---------- IRC ----------
   function parseIRC(raw) {
     raw.split('\r\n').forEach(line=>{
       if(!line) return;
@@ -430,7 +426,7 @@
     }
   }
 
-  // ---------- UI ФУНКЦИИ ----------
+  // UI функции
   let lastAiBox = null;
   function addMsgToFeed(author,text,color,isCmd){
     const initials=author.slice(0,2).toUpperCase();
@@ -439,14 +435,14 @@
     const div=document.createElement('div'); div.className='msg';
     div.innerHTML=`<div class="msg-av" style="background:${bg};color:${color}">${initials}</div>
       <div class="msg-body"><div class="msg-meta"><span class="msg-author" style="color:${color}">${esc(author)}</span><span class="msg-time">${getTime()}</span></div>
-      <div class="msg-text">${esc(text)}</div>${isCmd?`<div class="ai-box" id="${boxId}"><div class="ai-label">🤪 AI думает...</div><div class="ai-text"></div></div>`:''}</div>`;
+      <div class="msg-text">${esc(text)}</div>${isCmd?`<div class="ai-box" id="${boxId}"><div class="ai-label">🤬 ГЕНЕРАЦИЯ ОСКОРБЛЕНИЙ...</div><div class="ai-text"></div></div>`:''}</div>`;
     appendFeed(div);
     if(isCmd) lastAiBox=document.getElementById(boxId);
   }
-  function updateLastAiReply(answer){ if(lastAiBox){ lastAiBox.querySelector('.ai-label').textContent='🎤 Озвучено!'; lastAiBox.querySelector('.ai-text').textContent=answer; } }
+  function updateLastAiReply(answer){ if(lastAiBox){ lastAiBox.querySelector('.ai-label').textContent='🎤 Озвучено матерно!'; lastAiBox.querySelector('.ai-text').textContent=answer; } }
   function addAIMessageToFeed(answer,replyTo){
     const div=document.createElement('div'); div.className='msg';
-    div.innerHTML=`<div class="msg-av" style="background:#1a1025;color:#9147ff">🤖</div><div class="msg-body"><div class="msg-meta"><span class="msg-author" style="color:#9147ff">AI → @${esc(replyTo)}</span><span class="msg-time">${getTime()}</span></div><div class="msg-text">${esc(answer)}</div></div>`;
+    div.innerHTML=`<div class="msg-av" style="background:#1a1025;color:#9147ff">🤬</div><div class="msg-body"><div class="msg-meta"><span class="msg-author" style="color:#ff5555">AI → @${esc(replyTo)}</span><span class="msg-time">${getTime()}</span></div><div class="msg-text">${esc(answer)}</div></div>`;
     appendFeed(div);
   }
   function appendFeed(el){ const f=document.getElementById('feed'); f.appendChild(el); f.scrollTop=f.scrollHeight; }
@@ -455,7 +451,7 @@
     const id='si_'+Date.now()+'_'+Math.random().toString(36).slice(2);
     const div=document.createElement('div'); div.className='sitem new'; div.id=id;
     const badgeHtml=badge?`<span class="badge ${badge}">${badge==='ai-reply'?'!ai':badge}</span>`:'';
-    div.innerHTML=`<div class="sitem-who" style="color:${color}">${esc(author)} ${badgeHtml}</div><div class="sitem-thinking"><span>🧠 коммент</span><span class="think-dots"><span>.</span><span>.</span><span>.</span></span></div><div class="sitem-orig">${esc(text.length>60?text.slice(0,60)+'…':text)}</div>`;
+    div.innerHTML=`<div class="sitem-who" style="color:${color}">${esc(author)} ${badgeHtml}</div><div class="sitem-thinking"><span>🧠 ГЕНЕРАЦИЯ МАТА</span><span class="think-dots"><span>.</span><span>.</span><span>.</span></span></div><div class="sitem-orig">${esc(text.length>60?text.slice(0,60)+'…':text)}</div>`;
     sf.appendChild(div); sf.scrollTop=sf.scrollHeight;
     commentCount++; document.getElementById('commentCount').textContent=commentCount+' комментариев';
     return id;
@@ -463,18 +459,18 @@
   function updateSidebarComment(id,comment){
     const item=document.getElementById(id); if(!item) return;
     const thinking=item.querySelector('.sitem-thinking'); if(thinking) thinking.remove();
-    const el=document.createElement('div'); el.className='sitem-comment'; el.textContent='💬 '+comment;
+    const el=document.createElement('div'); el.className='sitem-comment'; el.textContent='💀 '+comment;
     item.insertBefore(el,item.querySelector('.sitem-orig'));
   }
   function markSidebarSpeaking(id,on){ const item=document.getElementById(id); if(!item) return; item.classList.toggle('speaking-now',on); const existing=item.querySelector('.speak-indicator'); if(on&&!existing){ const dot=document.createElement('div'); dot.className='speak-indicator'; item.appendChild(dot); item.scrollIntoView({behavior:'smooth',block:'nearest'}); } else if(!on&&existing) existing.remove(); }
 
   async function generateComment(text,author,sidebarId,readAloud){
     const apiKey=document.getElementById('apikey').value.trim();
-    if(!apiKey||text.length<3){ updateSidebarComment(sidebarId,'🤡 (коротко)'); return; }
+    if(!apiKey||text.length<3){ updateSidebarComment(sidebarId,'🤬 мамка спит'); return; }
     try{
       const resp=await fetch('https://api.groq.com/openai/v1/chat/completions',{
         method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},
-        body:JSON.stringify({model:'llama-3.3-70b-versatile',max_tokens:55,temperature:1.0,messages:[{role:'system',content:getCommentPrompt()},{role:'user',content:`Сообщение от ${author}: "${text}"`}]})
+        body:JSON.stringify({model:'llama-3.3-70b-versatile',max_tokens:55,temperature:1.2,messages:[{role:'system',content:getCommentPrompt()},{role:'user',content:`Сообщение от ${author}: "${text}"`}]})
       });
       const data=await resp.json();
       if(data.choices&&data.choices[0]){
@@ -484,11 +480,11 @@
           const shortComment = comment.length>80?comment.slice(0,80)+'…':comment;
           speakNow(shortComment, sidebarId, false, null);
         }
-      } else updateSidebarComment(sidebarId,'😬 молчит...');
-    }catch(e){ updateSidebarComment(sidebarId,'💥 ошибка'); }
+      } else updateSidebarComment(sidebarId,'😬 мать отказывается');
+    }catch(e){ updateSidebarComment(sidebarId,'💥 ошибка мамки'); }
   }
 
-  // ---------- ПОДКЛЮЧЕНИЕ TWITCH ----------
+  // ---------- ПОДКЛЮЧЕНИЕ ----------
   function toggleConnect(){ connected?disconnect():connect(); }
   function connect(){
     const channel=document.getElementById('channel').value.trim().toLowerCase();
@@ -500,13 +496,13 @@
     ws.onmessage=e=>{ if(e.data.includes('PING')){ ws.send('PONG :tmi.twitch.tv'); return; } parseIRC(e.data); };
     ws.onerror=()=>setStatus('error','Ошибка');
     ws.onclose=()=>{ if(connected){ connected=false; setStatus('off','Отключено'); document.getElementById('connectBtn').textContent='Подключиться к чату'; document.getElementById('connectBtn').classList.remove('connected'); cancelSpeaking(); cooldownUntil=0; if(afterCooldownTimer)clearTimeout(afterCooldownTimer); } };
-    setTimeout(()=>{ if(ws&&ws.readyState===1){ connected=true; setStatus('live','Подключено к #'+channel); document.getElementById('connectBtn').textContent='Отключиться'; document.getElementById('connectBtn').classList.add('connected'); clearFeed(); addSystemMsg('🤡 Угарный режим активирован! Бот будет отвечать с паузой 20-30 сек'); document.getElementById('sidebarFeed').innerHTML=''; unansweredMessages=[]; pendingCommandResponse=null; cooldownUntil=0; } },1500);
+    setTimeout(()=>{ if(ws&&ws.readyState===1){ connected=true; setStatus('live','Подключено к #'+channel); document.getElementById('connectBtn').textContent='Отключиться'; document.getElementById('connectBtn').classList.add('connected'); clearFeed(); addSystemMsg('🔞 ЖЕСТКИЙ МАТЕРИНСКИЙ РЕЖИМ АКТИВИРОВАН! Бот будет поливать грязью, пауза 20-30 сек'); document.getElementById('sidebarFeed').innerHTML=''; unansweredMessages=[]; pendingCommandResponse=null; cooldownUntil=0; } },1500);
   }
   function disconnect(){ if(ws){ ws.close(); ws=null; } connected=false; setStatus('off','Отключено'); document.getElementById('connectBtn').textContent='Подключиться к чату'; document.getElementById('connectBtn').classList.remove('connected'); cancelSpeaking(); cooldownUntil=0; if(afterCooldownTimer)clearTimeout(afterCooldownTimer); }
   function clearFeed(){ document.getElementById('feed').innerHTML=''; }
   function addSystemMsg(t){ const el=document.createElement('div'); el.className='system-msg'; el.textContent=t; appendFeed(el); }
   function setStatus(state,text){ const dot=document.getElementById('statusDot'); dot.className='dot'; if(state==='live') dot.classList.add('live'); if(state==='speaking') dot.classList.add('speaking'); document.getElementById('statusText').textContent=text; }
-  function setWave(show){ document.getElementById('wave').classList.toggle('show',show); if(show) setStatus('speaking','Бот говорит...'); else if(connected) setStatus('live','Подключено к #'+document.getElementById('channel').value.trim()); }
+  function setWave(show){ document.getElementById('wave').classList.toggle('show',show); if(show) setStatus('speaking','Бот матерится...'); else if(connected) setStatus('live','Подключено к #'+document.getElementById('channel').value.trim()); }
   function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
   function getTime(){ const d=new Date(); return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0'); }
   function hexSoft(hex){ if(!hex||!hex.startsWith('#')) return '#1a1025'; try{ const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16); return `rgba(${r},${g},${b},0.15)`; }catch(e){ return '#1a1025'; } }
