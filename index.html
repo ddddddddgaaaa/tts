@@ -222,11 +222,11 @@
       <label class="toggle"><input type="checkbox" id="readNick"/><span class="toggle-slider"></span></label>
     </div>
     <div class="toggle-row">
-      <label class="tl">Авто‑ответы AI каждые ~25 сек (на основе чата)</label>
+      <label class="tl">Авто‑ответы AI (каждые 4‑5 сообщений или ~15‑25 сек)</label>
       <label class="toggle"><input type="checkbox" id="readAll"/><span class="toggle-slider"></span></label>
     </div>
     <div class="toggle-row">
-      <label class="tl">Произносить ник при авто‑озвучке (в ответе AI)</label>
+      <label class="tl">Произносить "Бот говорит:" перед авто‑ответом</label>
       <label class="toggle"><input type="checkbox" id="readNickAll" checked/><span class="toggle-slider"></span></label>
     </div>
     <div class="toggle-row">
@@ -337,11 +337,14 @@ let ws = null, connected = false, speaking = false, speakQueue = [], voices = []
 let commentCount = 0;
 let currentSidebarItem = null;
 
-// Для контекста авто‑ответов: храним последние N сообщений
+// Контекст для авто‑ответов
 const CONTEXT_SIZE = 12;
 let recentMessages = [];  // { author, text, timestamp }
 let autoIntervalId = null;
-let nextAutoDelay = 25000; // будет меняться
+let autoMessageCounter = 0;
+const AUTO_MSG_THRESHOLD = 4;      // после 4-х сообщений
+const AUTO_TIME_MIN = 15000;        // 15 сек
+const AUTO_TIME_MAX = 25000;        // 25 сек
 
 // ── VOICES ────────────────────────────────────────────────────────
 function loadVoices() {
@@ -402,6 +405,7 @@ function connect() {
       addSystemMsg('Подключено к #' + channel + ' — слушаю чат...');
       document.getElementById('sidebarFeed').innerHTML = '';
       recentMessages = [];
+      autoMessageCounter = 0;
       if (document.getElementById('readAll').checked) {
         startAutoInterval();
       }
@@ -418,7 +422,7 @@ function disconnect() {
   stopAutoInterval();
 }
 
-// ── AUTO AI RESPONSE (каждые 20–30 сек) ──────────────────────────
+// ── AUTO AI RESPONSE (гибрид: по таймеру или по счётчику) ────────
 function startAutoInterval() {
   if (autoIntervalId) clearTimeout(autoIntervalId);
   scheduleNextAuto();
@@ -426,12 +430,31 @@ function startAutoInterval() {
 
 function scheduleNextAuto() {
   if (!connected || !document.getElementById('readAll').checked) return;
-  const delay = 20000 + Math.floor(Math.random() * 10000); // 20-30 сек
-  nextAutoDelay = delay;
+  const delay = AUTO_TIME_MIN + Math.floor(Math.random() * (AUTO_TIME_MAX - AUTO_TIME_MIN));
   autoIntervalId = setTimeout(() => {
-    performAutoResponse();
+    // Таймер сработал — если есть сообщения, отвечаем
+    if (recentMessages.length > 0) {
+      performAutoResponse();
+    }
     scheduleNextAuto();
   }, delay);
+}
+
+function resetAutoTimer() {
+  if (autoIntervalId) {
+    clearTimeout(autoIntervalId);
+    scheduleNextAuto();
+  }
+}
+
+function incrementAutoCounter() {
+  if (!document.getElementById('readAll').checked) return;
+  autoMessageCounter++;
+  if (autoMessageCounter >= AUTO_MSG_THRESHOLD) {
+    performAutoResponse();
+    autoMessageCounter = 0;
+    resetAutoTimer(); // сбрасываем таймер после ответа по счётчику
+  }
 }
 
 function stopAutoInterval() {
@@ -439,15 +462,16 @@ function stopAutoInterval() {
     clearTimeout(autoIntervalId);
     autoIntervalId = null;
   }
+  autoMessageCounter = 0;
 }
 
 async function performAutoResponse() {
   if (!connected) return;
   const apiKey = document.getElementById('apikey').value.trim();
   if (!apiKey) return;
-  if (recentMessages.length === 0) return; // нет контекста
+  if (recentMessages.length === 0) return;
 
-  // Формируем контекст из последних сообщений (макс. 10)
+  // Формируем контекст
   const contextMessages = recentMessages.slice(-10).map(m => `${m.author}: ${m.text}`).join('\n');
   const systemPrompt = getSystemPrompt();
   const userPrompt = `Вот последние сообщения чата:\n${contextMessages}\n\nПридумай смешной комментарий или шутку, соответствующую твоей личности. Ответ должен быть КОРОТКИМ (1-2 предложения). Отвечай на том же языке, что и чат.`;
@@ -468,9 +492,7 @@ async function performAutoResponse() {
     const data = await resp.json();
     if (data.choices && data.choices[0]) {
       const answer = data.choices[0].message.content.trim();
-      // Отображаем в фиде как AI-сообщение
       addAIMessageToFeed(answer);
-      // Озвучиваем с цензурой и опционально с ником (используем ник "Бот" или без)
       let speechText = answer;
       if (document.getElementById('readNickAll').checked) {
         speechText = `Бот говорит: ${answer}`;
@@ -525,13 +547,14 @@ function parseIRC(raw) {
 function handleMsg(author, text, color) {
   const trigger = document.getElementById('trigger').value.trim();
   const isCmd = text.toLowerCase().startsWith(trigger.toLowerCase());
-  const readAll = document.getElementById('readAll').checked;
   const readComment = document.getElementById('readComment').checked;
 
   // Добавляем в контекст (игнорируем команды)
   if (!isCmd) {
     recentMessages.push({ author, text, timestamp: Date.now() });
     if (recentMessages.length > CONTEXT_SIZE) recentMessages.shift();
+    // Увеличиваем счётчик для авто‑ответа
+    incrementAutoCounter();
   }
 
   // Add to sidebar regardless
@@ -564,6 +587,7 @@ document.getElementById('readAll').addEventListener('change', function(e) {
   if (!connected) return;
   if (this.checked) {
     startAutoInterval();
+    autoMessageCounter = 0;
   } else {
     stopAutoInterval();
   }
