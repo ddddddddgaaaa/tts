@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Twitch AI Voice Bot</title>
 <style>
+  /* ... (стили без изменений) ... */
   *{box-sizing:border-box;margin:0;padding:0}
   body{font-family:system-ui,sans-serif;background:#0e0e10;color:#efeff1;min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:24px 16px}
   .app{width:100%;max-width:1100px}
@@ -221,11 +222,11 @@
       <label class="toggle"><input type="checkbox" id="readNick"/><span class="toggle-slider"></span></label>
     </div>
     <div class="toggle-row">
-      <label class="tl">Читать весь чат голосом (не только !ai)</label>
+      <label class="tl">Включить авто‑озвучку (выбор самого угарного каждые ~30 сек)</label>
       <label class="toggle"><input type="checkbox" id="readAll"/><span class="toggle-slider"></span></label>
     </div>
     <div class="toggle-row">
-      <label class="tl">Произносить ник при чтении всего чата</label>
+      <label class="tl">Произносить ник при авто‑озвучке</label>
       <label class="toggle"><input type="checkbox" id="readNickAll" checked/><span class="toggle-slider"></span></label>
     </div>
     <div class="toggle-row">
@@ -311,10 +312,41 @@ function getCommentPrompt() {
   return COMMENT_PROMPTS[currentPersona] || COMMENT_PROMPTS.custom;
 }
 
+// ── BAN WORDS FILTER (Twitch banned words + common profanity) ─────
+const BAN_WORDS = [
+  // English slurs & profanity (partial list, extend as needed)
+  'nigger', 'nigga', 'faggot', 'retard', 'cunt', 'whore', 'slut', 'kike', 'spic', 'chink',
+  'fuck', 'shit', 'bitch', 'asshole', 'dick', 'pussy', 'bastard',
+  // Russian mat & insults
+  'хуй', 'пизда', 'ебать', 'блядь', 'сука', 'пидор', 'гандон', 'мудак', 'залупа', 'жопа',
+  'еблан', 'долбоёб', 'уебок', 'шлюха', 'проститутка', 'пидорас', 'педик',
+  // common variations
+  'хуи', 'пизд', 'ебал', 'ебёт', 'выеб', 'нахуй', 'похуй', 'нихуя', 'дохуя',
+  'заебал', 'уебище', 'ебаный', 'ёбаный', 'блять', 'бля', 'сука', 'сучка',
+  // Twitch-specific: "incel", "simp" sometimes used in toxic way but keep? We'll include if necessary.
+  // Add more as needed.
+];
+
+function censorText(text) {
+  if (!text) return text;
+  let censored = text;
+  BAN_WORDS.forEach(word => {
+    // case-insensitive replace with ***
+    const regex = new RegExp(word.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), 'gi');
+    censored = censored.replace(regex, '***');
+  });
+  return censored;
+}
+
 // ── STATE ─────────────────────────────────────────────────────────
 let ws = null, connected = false, speaking = false, speakQueue = [], voices = [];
 let commentCount = 0;
 let currentSidebarItem = null;
+
+// Новые переменные для авто‑озвучки
+let messageBuffer = [];          // { author, text, color, timestamp }
+let autoSpeakInterval = null;
+const AUTO_INTERVAL_MS = 30000;  // 30 секунд
 
 // ── VOICES ────────────────────────────────────────────────────────
 function loadVoices() {
@@ -362,6 +394,7 @@ function connect() {
       setStatus('off', 'Отключено');
       document.getElementById('connectBtn').textContent = 'Подключиться к чату';
       document.getElementById('connectBtn').classList.remove('connected');
+      stopAutoSpeakInterval();
     }
   };
   setTimeout(() => {
@@ -372,8 +405,11 @@ function connect() {
       document.getElementById('connectBtn').classList.add('connected');
       clearFeed();
       addSystemMsg('Подключено к #' + channel + ' — слушаю чат...');
-      // clear sidebar placeholder
       document.getElementById('sidebarFeed').innerHTML = '';
+      // Запускаем интервал авто‑озвучки, если включено
+      if (document.getElementById('readAll').checked) {
+        startAutoSpeakInterval();
+      }
     }
   }, 1500);
 }
@@ -384,6 +420,75 @@ function disconnect() {
   setStatus('off', 'Отключено');
   document.getElementById('connectBtn').textContent = 'Подключиться к чату';
   document.getElementById('connectBtn').classList.remove('connected');
+  stopAutoSpeakInterval();
+}
+
+// ── AUTO SPEAK LOGIC (выбор самого угарного сообщения) ────────────
+function startAutoSpeakInterval() {
+  if (autoSpeakInterval) clearInterval(autoSpeakInterval);
+  autoSpeakInterval = setInterval(() => {
+    if (!connected) return;
+    if (messageBuffer.length === 0) return;
+    // Выбираем самое "угарное" сообщение
+    const best = selectFunniestMessage(messageBuffer);
+    if (!best) return;
+    // Озвучиваем (с фильтром бан-вордов и опционально с ником)
+    const readNickAll = document.getElementById('readNickAll').checked;
+    let speechText = readNickAll ? `${best.author} говорит: ${best.text}` : best.text;
+    speechText = censorText(speechText);
+    enqueueSpeak(speechText, null);  // нет привязки к sidebar
+    // Очищаем буфер
+    messageBuffer = [];
+    // Можно добавить системное сообщение в фид
+    addSystemMsg(`🔊 Озвучено угарное сообщение от ${best.author}`);
+  }, AUTO_INTERVAL_MS);
+}
+
+function stopAutoSpeakInterval() {
+  if (autoSpeakInterval) {
+    clearInterval(autoSpeakInterval);
+    autoSpeakInterval = null;
+  }
+}
+
+// Эвристика "угарности" (можно доработать)
+function scoreMessage(msg) {
+  let score = 0;
+  const text = msg.text;
+  // Длина сообщения (не слишком короткое)
+  if (text.length >= 10) score += 2;
+  else if (text.length >= 5) score += 1;
+  // Наличие КАПСА
+  const capsRatio = (text.replace(/[^A-ZА-ЯЁ]/g, '').length) / Math.max(1, text.length);
+  if (capsRatio > 0.3) score += 3;
+  // Восклицательные знаки
+  const exclamationCount = (text.match(/!/g) || []).length;
+  score += Math.min(exclamationCount, 3) * 2;
+  // Эмодзи и смайлики (упрощённо)
+  const emojiCount = (text.match(/[\u{1F600}-\u{1F64F}]/gu) || []).length;
+  score += emojiCount * 2;
+  // Вопросы — иногда смешные
+  if (text.includes('?')) score += 1;
+  // Слова-триггеры "смешного" (можно расширить)
+  const funnyWords = ['lol', 'ахах', 'хаха', 'ржу', 'ору', 'смешно', 'мем', 'кек', 'lmao', 'rofl'];
+  funnyWords.forEach(w => {
+    if (text.toLowerCase().includes(w)) score += 2;
+  });
+  return score;
+}
+
+function selectFunniestMessage(buffer) {
+  if (buffer.length === 0) return null;
+  let best = buffer[0];
+  let bestScore = scoreMessage(best);
+  for (let i = 1; i < buffer.length; i++) {
+    const score = scoreMessage(buffer[i]);
+    if (score > bestScore) {
+      bestScore = score;
+      best = buffer[i];
+    }
+  }
+  return best;
 }
 
 // ── IRC PARSER ────────────────────────────────────────────────────
@@ -421,10 +526,10 @@ function handleMsg(author, text, color) {
   // Get AI comment for sidebar
   generateComment(text, author, sidebarId, readComment);
 
+  // Если включена авто‑озвучка, то добавляем сообщение в буфер (не озвучиваем сразу)
   if (readAll && !isCmd) {
     addMsgToFeed(author, text, color, false);
-    const speech = readNickAll ? (author + ' говорит: ' + text) : text;
-    enqueueSpeak(speech, sidebarId);
+    messageBuffer.push({ author, text, color, timestamp: Date.now() });
     return;
   }
 
@@ -435,7 +540,9 @@ function handleMsg(author, text, color) {
     askGroq(author, question, (answer) => {
       updateLastAiReply(answer);
       const readNick = document.getElementById('readNick').checked;
-      enqueueSpeak(readNick ? (author + ': ' + answer) : answer, sidebarId);
+      let speechText = readNick ? (author + ': ' + answer) : answer;
+      speechText = censorText(speechText);
+      enqueueSpeak(speechText, sidebarId);
     });
     return;
   }
@@ -445,6 +552,16 @@ function handleMsg(author, text, color) {
     addMsgToFeed(author, text, color, false);
   }
 }
+
+// Слушаем изменение чекбокса "readAll" для запуска/остановки интервала
+document.getElementById('readAll').addEventListener('change', function(e) {
+  if (!connected) return;
+  if (this.checked) {
+    startAutoSpeakInterval();
+  } else {
+    stopAutoSpeakInterval();
+  }
+});
 
 // ── SIDEBAR ───────────────────────────────────────────────────────
 function addSidebarItem(author, text, color, badge) {
@@ -524,7 +641,9 @@ async function generateComment(text, author, sidebarId, readAloud) {
       const comment = data.choices[0].message.content.trim();
       updateSidebarComment(sidebarId, comment);
       if (readAloud) {
-        enqueueComment(comment, sidebarId);
+        // Цензурируем комментарий перед озвучкой
+        const censoredComment = censorText(comment);
+        enqueueComment(censoredComment, sidebarId);
       }
     } else {
       updateSidebarComment(sidebarId, '...');
@@ -557,8 +676,6 @@ async function askGroq(author, question, callback) {
 }
 
 // ── TTS QUEUE ─────────────────────────────────────────────────────
-// Two queues: main (chat reading / AI replies) and comments (sidebar)
-// Comments play after main queue item finishes
 let mainQueue = [];   // {text, sidebarId}
 let commentQueue = []; // {text, sidebarId}
 let isSpeaking = false;
@@ -574,11 +691,11 @@ function enqueueComment(text, sidebarId) {
 }
 
 function processNextSpeech() {
-  // main first, then comments
   let item = mainQueue.length ? mainQueue.shift() : commentQueue.length ? commentQueue.shift() : null;
   if (!item) { isSpeaking = false; setWave(false); return; }
   isSpeaking = true; setWave(true);
   if (item.sidebarId) markSidebarSpeaking(item.sidebarId, true);
+  // Текст уже должен быть цензурирован перед добавлением в очередь
   const utt = new SpeechSynthesisUtterance(item.text);
   const v = voices.find(x => x.name === document.getElementById('voiceSelect').value);
   if (v) utt.voice = v;
