@@ -222,11 +222,11 @@
       <label class="toggle"><input type="checkbox" id="readNick"/><span class="toggle-slider"></span></label>
     </div>
     <div class="toggle-row">
-      <label class="tl">Включить авто‑озвучку (выбор самого угарного каждые ~30 сек)</label>
+      <label class="tl">Авто‑ответы AI каждые ~25 сек (на основе чата)</label>
       <label class="toggle"><input type="checkbox" id="readAll"/><span class="toggle-slider"></span></label>
     </div>
     <div class="toggle-row">
-      <label class="tl">Произносить ник при авто‑озвучке</label>
+      <label class="tl">Произносить ник при авто‑озвучке (в ответе AI)</label>
       <label class="toggle"><input type="checkbox" id="readNickAll" checked/><span class="toggle-slider"></span></label>
     </div>
     <div class="toggle-row">
@@ -314,24 +314,18 @@ function getCommentPrompt() {
 
 // ── BAN WORDS FILTER (Twitch banned words + common profanity) ─────
 const BAN_WORDS = [
-  // English slurs & profanity (partial list, extend as needed)
   'nigger', 'nigga', 'faggot', 'retard', 'cunt', 'whore', 'slut', 'kike', 'spic', 'chink',
   'fuck', 'shit', 'bitch', 'asshole', 'dick', 'pussy', 'bastard',
-  // Russian mat & insults
   'хуй', 'пизда', 'ебать', 'блядь', 'сука', 'пидор', 'гандон', 'мудак', 'залупа', 'жопа',
   'еблан', 'долбоёб', 'уебок', 'шлюха', 'проститутка', 'пидорас', 'педик',
-  // common variations
   'хуи', 'пизд', 'ебал', 'ебёт', 'выеб', 'нахуй', 'похуй', 'нихуя', 'дохуя',
   'заебал', 'уебище', 'ебаный', 'ёбаный', 'блять', 'бля', 'сука', 'сучка',
-  // Twitch-specific: "incel", "simp" sometimes used in toxic way but keep? We'll include if necessary.
-  // Add more as needed.
 ];
 
 function censorText(text) {
   if (!text) return text;
   let censored = text;
   BAN_WORDS.forEach(word => {
-    // case-insensitive replace with ***
     const regex = new RegExp(word.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), 'gi');
     censored = censored.replace(regex, '***');
   });
@@ -343,10 +337,11 @@ let ws = null, connected = false, speaking = false, speakQueue = [], voices = []
 let commentCount = 0;
 let currentSidebarItem = null;
 
-// Новые переменные для авто‑озвучки
-let messageBuffer = [];          // { author, text, color, timestamp }
-let autoSpeakInterval = null;
-const AUTO_INTERVAL_MS = 30000;  // 30 секунд
+// Для контекста авто‑ответов: храним последние N сообщений
+const CONTEXT_SIZE = 12;
+let recentMessages = [];  // { author, text, timestamp }
+let autoIntervalId = null;
+let nextAutoDelay = 25000; // будет меняться
 
 // ── VOICES ────────────────────────────────────────────────────────
 function loadVoices() {
@@ -394,7 +389,7 @@ function connect() {
       setStatus('off', 'Отключено');
       document.getElementById('connectBtn').textContent = 'Подключиться к чату';
       document.getElementById('connectBtn').classList.remove('connected');
-      stopAutoSpeakInterval();
+      stopAutoInterval();
     }
   };
   setTimeout(() => {
@@ -406,9 +401,9 @@ function connect() {
       clearFeed();
       addSystemMsg('Подключено к #' + channel + ' — слушаю чат...');
       document.getElementById('sidebarFeed').innerHTML = '';
-      // Запускаем интервал авто‑озвучки, если включено
+      recentMessages = [];
       if (document.getElementById('readAll').checked) {
-        startAutoSpeakInterval();
+        startAutoInterval();
       }
     }
   }, 1500);
@@ -420,75 +415,89 @@ function disconnect() {
   setStatus('off', 'Отключено');
   document.getElementById('connectBtn').textContent = 'Подключиться к чату';
   document.getElementById('connectBtn').classList.remove('connected');
-  stopAutoSpeakInterval();
+  stopAutoInterval();
 }
 
-// ── AUTO SPEAK LOGIC (выбор самого угарного сообщения) ────────────
-function startAutoSpeakInterval() {
-  if (autoSpeakInterval) clearInterval(autoSpeakInterval);
-  autoSpeakInterval = setInterval(() => {
-    if (!connected) return;
-    if (messageBuffer.length === 0) return;
-    // Выбираем самое "угарное" сообщение
-    const best = selectFunniestMessage(messageBuffer);
-    if (!best) return;
-    // Озвучиваем (с фильтром бан-вордов и опционально с ником)
-    const readNickAll = document.getElementById('readNickAll').checked;
-    let speechText = readNickAll ? `${best.author} говорит: ${best.text}` : best.text;
-    speechText = censorText(speechText);
-    enqueueSpeak(speechText, null);  // нет привязки к sidebar
-    // Очищаем буфер
-    messageBuffer = [];
-    // Можно добавить системное сообщение в фид
-    addSystemMsg(`🔊 Озвучено угарное сообщение от ${best.author}`);
-  }, AUTO_INTERVAL_MS);
+// ── AUTO AI RESPONSE (каждые 20–30 сек) ──────────────────────────
+function startAutoInterval() {
+  if (autoIntervalId) clearTimeout(autoIntervalId);
+  scheduleNextAuto();
 }
 
-function stopAutoSpeakInterval() {
-  if (autoSpeakInterval) {
-    clearInterval(autoSpeakInterval);
-    autoSpeakInterval = null;
+function scheduleNextAuto() {
+  if (!connected || !document.getElementById('readAll').checked) return;
+  const delay = 20000 + Math.floor(Math.random() * 10000); // 20-30 сек
+  nextAutoDelay = delay;
+  autoIntervalId = setTimeout(() => {
+    performAutoResponse();
+    scheduleNextAuto();
+  }, delay);
+}
+
+function stopAutoInterval() {
+  if (autoIntervalId) {
+    clearTimeout(autoIntervalId);
+    autoIntervalId = null;
   }
 }
 
-// Эвристика "угарности" (можно доработать)
-function scoreMessage(msg) {
-  let score = 0;
-  const text = msg.text;
-  // Длина сообщения (не слишком короткое)
-  if (text.length >= 10) score += 2;
-  else if (text.length >= 5) score += 1;
-  // Наличие КАПСА
-  const capsRatio = (text.replace(/[^A-ZА-ЯЁ]/g, '').length) / Math.max(1, text.length);
-  if (capsRatio > 0.3) score += 3;
-  // Восклицательные знаки
-  const exclamationCount = (text.match(/!/g) || []).length;
-  score += Math.min(exclamationCount, 3) * 2;
-  // Эмодзи и смайлики (упрощённо)
-  const emojiCount = (text.match(/[\u{1F600}-\u{1F64F}]/gu) || []).length;
-  score += emojiCount * 2;
-  // Вопросы — иногда смешные
-  if (text.includes('?')) score += 1;
-  // Слова-триггеры "смешного" (можно расширить)
-  const funnyWords = ['lol', 'ахах', 'хаха', 'ржу', 'ору', 'смешно', 'мем', 'кек', 'lmao', 'rofl'];
-  funnyWords.forEach(w => {
-    if (text.toLowerCase().includes(w)) score += 2;
-  });
-  return score;
-}
+async function performAutoResponse() {
+  if (!connected) return;
+  const apiKey = document.getElementById('apikey').value.trim();
+  if (!apiKey) return;
+  if (recentMessages.length === 0) return; // нет контекста
 
-function selectFunniestMessage(buffer) {
-  if (buffer.length === 0) return null;
-  let best = buffer[0];
-  let bestScore = scoreMessage(best);
-  for (let i = 1; i < buffer.length; i++) {
-    const score = scoreMessage(buffer[i]);
-    if (score > bestScore) {
-      bestScore = score;
-      best = buffer[i];
+  // Формируем контекст из последних сообщений (макс. 10)
+  const contextMessages = recentMessages.slice(-10).map(m => `${m.author}: ${m.text}`).join('\n');
+  const systemPrompt = getSystemPrompt();
+  const userPrompt = `Вот последние сообщения чата:\n${contextMessages}\n\nПридумай смешной комментарий или шутку, соответствующую твоей личности. Ответ должен быть КОРОТКИМ (1-2 предложения). Отвечай на том же языке, что и чат.`;
+
+  try {
+    const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey },
+      body: JSON.stringify({
+        model: 'llama-3.3-70b-versatile',
+        max_tokens: 120,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt }
+        ]
+      })
+    });
+    const data = await resp.json();
+    if (data.choices && data.choices[0]) {
+      const answer = data.choices[0].message.content.trim();
+      // Отображаем в фиде как AI-сообщение
+      addAIMessageToFeed(answer);
+      // Озвучиваем с цензурой и опционально с ником (используем ник "Бот" или без)
+      let speechText = answer;
+      if (document.getElementById('readNickAll').checked) {
+        speechText = `Бот говорит: ${answer}`;
+      }
+      speechText = censorText(speechText);
+      enqueueSpeak(speechText, null);
+    } else {
+      console.warn('Auto response error:', data);
     }
+  } catch (e) {
+    console.error('Auto response fetch error:', e);
   }
-  return best;
+}
+
+function addAIMessageToFeed(text) {
+  const div = document.createElement('div');
+  div.className = 'msg';
+  div.innerHTML = `
+    <div class="msg-av" style="background:#1a1025;color:#9147ff">AI</div>
+    <div class="msg-body">
+      <div class="msg-meta">
+        <span class="msg-author" style="color:#9147ff">🤖 Бот</span>
+        <span class="msg-time">${getTime()}</span>
+      </div>
+      <div class="msg-text">${esc(text)}</div>
+    </div>`;
+  appendFeed(div);
 }
 
 // ── IRC PARSER ────────────────────────────────────────────────────
@@ -517,8 +526,13 @@ function handleMsg(author, text, color) {
   const trigger = document.getElementById('trigger').value.trim();
   const isCmd = text.toLowerCase().startsWith(trigger.toLowerCase());
   const readAll = document.getElementById('readAll').checked;
-  const readNickAll = document.getElementById('readNickAll').checked;
   const readComment = document.getElementById('readComment').checked;
+
+  // Добавляем в контекст (игнорируем команды)
+  if (!isCmd) {
+    recentMessages.push({ author, text, timestamp: Date.now() });
+    if (recentMessages.length > CONTEXT_SIZE) recentMessages.shift();
+  }
 
   // Add to sidebar regardless
   const sidebarId = addSidebarItem(author, text, color, isCmd ? 'ai-reply' : null);
@@ -526,13 +540,7 @@ function handleMsg(author, text, color) {
   // Get AI comment for sidebar
   generateComment(text, author, sidebarId, readComment);
 
-  // Если включена авто‑озвучка, то добавляем сообщение в буфер (не озвучиваем сразу)
-  if (readAll && !isCmd) {
-    addMsgToFeed(author, text, color, false);
-    messageBuffer.push({ author, text, color, timestamp: Date.now() });
-    return;
-  }
-
+  // Если команда !ai
   if (isCmd) {
     const question = text.slice(trigger.length).trim();
     if (!question) return;
@@ -547,19 +555,17 @@ function handleMsg(author, text, color) {
     return;
   }
 
-  // just show in feed if not reading all
-  if (!readAll) {
-    addMsgToFeed(author, text, color, false);
-  }
+  // Обычное сообщение — показываем в фиде
+  addMsgToFeed(author, text, color, false);
 }
 
-// Слушаем изменение чекбокса "readAll" для запуска/остановки интервала
+// Слушаем изменение чекбокса "readAll" для запуска/остановки авто‑ответов
 document.getElementById('readAll').addEventListener('change', function(e) {
   if (!connected) return;
   if (this.checked) {
-    startAutoSpeakInterval();
+    startAutoInterval();
   } else {
-    stopAutoSpeakInterval();
+    stopAutoInterval();
   }
 });
 
@@ -618,7 +624,6 @@ function markSidebarSpeaking(id, on) {
 async function generateComment(text, author, sidebarId, readAloud) {
   const apiKey = document.getElementById('apikey').value.trim();
   if (!apiKey) return;
-  // skip very short messages / spam
   if (text.length < 3) {
     updateSidebarComment(sidebarId, '(слишком коротко для комментария)');
     return;
@@ -641,7 +646,6 @@ async function generateComment(text, author, sidebarId, readAloud) {
       const comment = data.choices[0].message.content.trim();
       updateSidebarComment(sidebarId, comment);
       if (readAloud) {
-        // Цензурируем комментарий перед озвучкой
         const censoredComment = censorText(comment);
         enqueueComment(censoredComment, sidebarId);
       }
@@ -676,8 +680,8 @@ async function askGroq(author, question, callback) {
 }
 
 // ── TTS QUEUE ─────────────────────────────────────────────────────
-let mainQueue = [];   // {text, sidebarId}
-let commentQueue = []; // {text, sidebarId}
+let mainQueue = [];
+let commentQueue = [];
 let isSpeaking = false;
 
 function enqueueSpeak(text, sidebarId) {
@@ -695,7 +699,6 @@ function processNextSpeech() {
   if (!item) { isSpeaking = false; setWave(false); return; }
   isSpeaking = true; setWave(true);
   if (item.sidebarId) markSidebarSpeaking(item.sidebarId, true);
-  // Текст уже должен быть цензурирован перед добавлением в очередь
   const utt = new SpeechSynthesisUtterance(item.text);
   const v = voices.find(x => x.name === document.getElementById('voiceSelect').value);
   if (v) utt.voice = v;
