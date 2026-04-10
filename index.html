@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Twitch AI Voice Bot</title>
 <style>
-  /* ... (стили без изменений) ... */
+  /* стили без изменений */
   *{box-sizing:border-box;margin:0;padding:0}
   body{font-family:system-ui,sans-serif;background:#0e0e10;color:#efeff1;min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:24px 16px}
   .app{width:100%;max-width:1100px}
@@ -26,7 +26,6 @@
   .field .hint{font-size:11px;color:#777;margin-top:4px}
   .field .hint a{color:#9147ff;text-decoration:none}
 
-  /* persona */
   .persona-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
   .persona-card{background:#0e0e10;border:1px solid #2d2d35;border-radius:10px;padding:10px 12px;cursor:pointer;transition:all .15s}
   .persona-card:hover{border-color:#555}
@@ -35,7 +34,6 @@
   .persona-card .p-desc{font-size:11px;color:#777;line-height:1.4}
   .persona-card .p-emoji{font-size:18px;margin-bottom:4px}
 
-  /* toggle */
   .toggle-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-top:1px solid #2d2d35}
   .toggle-row label.tl{font-size:13px;color:#adadb8;flex:1}
   .toggle{position:relative;width:38px;height:20px;cursor:pointer;flex-shrink:0}
@@ -63,13 +61,10 @@
   .wave span:nth-child(4){animation-delay:.3s}
   @keyframes wv{0%,100%{height:3px}50%{height:13px}}
 
-  /* MAIN LAYOUT — chat + sidebar */
   .main-layout{display:grid;grid-template-columns:1fr 320px;gap:14px;align-items:start}
-
   .feed{background:#0e0e10;border:1px solid #2d2d35;border-radius:12px;padding:14px;height:420px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;scroll-behavior:smooth}
   .feed::-webkit-scrollbar{width:4px}
   .feed::-webkit-scrollbar-thumb{background:#2d2d35;border-radius:2px}
-
   .msg{display:flex;gap:8px}
   .msg-av{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
   .msg-body{flex:1;min-width:0}
@@ -82,7 +77,6 @@
   .ai-text{font-size:13px;color:#c4c4cc;line-height:1.45}
   .system-msg{font-size:12px;color:#555;text-align:center;padding:4px 0}
 
-  /* SIDEBAR */
   .sidebar{display:flex;flex-direction:column;gap:0}
   .sidebar-header{background:#18181b;border:1px solid #2d2d35;border-radius:12px 12px 0 0;padding:12px 14px;display:flex;align-items:center;gap:8px}
   .sidebar-header .sh-icon{font-size:16px}
@@ -91,7 +85,6 @@
   .sidebar-feed{background:#0e0e10;border:1px solid #2d2d35;border-top:none;border-radius:0 0 12px 12px;height:420px;overflow-y:auto;display:flex;flex-direction:column;gap:0}
   .sidebar-feed::-webkit-scrollbar{width:3px}
   .sidebar-feed::-webkit-scrollbar-thumb{background:#2d2d35;border-radius:2px}
-
   .sitem{padding:12px 14px;border-bottom:1px solid #1a1a22;transition:background .15s;position:relative}
   .sitem:last-child{border-bottom:none}
   .sitem.new{animation:slideIn .3s ease}
@@ -222,11 +215,11 @@
       <label class="toggle"><input type="checkbox" id="readNick"/><span class="toggle-slider"></span></label>
     </div>
     <div class="toggle-row">
-      <label class="tl">Авто‑ответы AI (каждые 4‑5 сообщений или ~15‑25 сек)</label>
+      <label class="tl">Авто‑ответы AI (каждые 10‑20 сек на случайное сообщение)</label>
       <label class="toggle"><input type="checkbox" id="readAll"/><span class="toggle-slider"></span></label>
     </div>
     <div class="toggle-row">
-      <label class="tl">Произносить "Бот говорит:" перед авто‑ответом</label>
+      <label class="tl">Произносить "Бот отвечает:" перед авто‑ответом</label>
       <label class="toggle"><input type="checkbox" id="readNickAll" checked/><span class="toggle-slider"></span></label>
     </div>
     <div class="toggle-row">
@@ -244,12 +237,9 @@
 
   <!-- MAIN LAYOUT -->
   <div class="main-layout">
-    <!-- ЧАТ -->
     <div class="feed" id="feed">
       <div class="system-msg">Чат появится здесь после подключения</div>
     </div>
-
-    <!-- БОКОВАЯ ПАНЕЛЬ -->
     <div class="sidebar">
       <div class="sidebar-header">
         <span class="sh-icon">🤖</span>
@@ -285,7 +275,6 @@ const PERSONAS = {
   custom: ''
 };
 
-// Промпт для боковых комментариев — отдельный от личности
 const COMMENT_PROMPTS = {
   funny: `Ты саркастичный и угарный комментатор Twitch чата. Тебе показывают сообщение от зрителя, и ты должен придумать КОРОТКИЙ (1 предложение) смешной или абсурдный комментарий к нему — как будто ты диджей на радио который прикалывается над слушателями. Никогда не будь серьёзным. Отвечай на том же языке что сообщение. Отвечай ТОЛЬКО комментарием, без предисловий.`,
   sarcastic: `Ты невероятно саркастичный комментатор Twitch чата. Тебе показывают сообщение зрителя, и ты выдаёшь КОРОТКИЙ (1 предложение) едкий саркастичный комментарий — как Дрейк который смотрит на это свысока. Отвечай на том же языке что сообщение. Отвечай ТОЛЬКО комментарием.`,
@@ -312,7 +301,7 @@ function getCommentPrompt() {
   return COMMENT_PROMPTS[currentPersona] || COMMENT_PROMPTS.custom;
 }
 
-// ── BAN WORDS FILTER (Twitch banned words + common profanity) ─────
+// ── BAN WORDS FILTER ──────────────────────────────────────────────
 const BAN_WORDS = [
   'nigger', 'nigga', 'faggot', 'retard', 'cunt', 'whore', 'slut', 'kike', 'spic', 'chink',
   'fuck', 'shit', 'bitch', 'asshole', 'dick', 'pussy', 'bastard',
@@ -333,18 +322,14 @@ function censorText(text) {
 }
 
 // ── STATE ─────────────────────────────────────────────────────────
-let ws = null, connected = false, speaking = false, speakQueue = [], voices = [];
+let ws = null, connected = false, voices = [];
 let commentCount = 0;
-let currentSidebarItem = null;
 
-// Контекст для авто‑ответов
-const CONTEXT_SIZE = 12;
-let recentMessages = [];  // { author, text, timestamp }
+// Для авто‑ответов: храним непрочитанные сообщения
+let unansweredMessages = [];   // { author, text, timestamp }
 let autoIntervalId = null;
-let autoMessageCounter = 0;
-const AUTO_MSG_THRESHOLD = 4;      // после 4-х сообщений
-const AUTO_TIME_MIN = 15000;        // 15 сек
-const AUTO_TIME_MAX = 25000;        // 25 сек
+const AUTO_TIME_MIN = 10000;   // 10 сек
+const AUTO_TIME_MAX = 20000;   // 20 сек
 
 // ── VOICES ────────────────────────────────────────────────────────
 function loadVoices() {
@@ -404,8 +389,7 @@ function connect() {
       clearFeed();
       addSystemMsg('Подключено к #' + channel + ' — слушаю чат...');
       document.getElementById('sidebarFeed').innerHTML = '';
-      recentMessages = [];
-      autoMessageCounter = 0;
+      unansweredMessages = [];
       if (document.getElementById('readAll').checked) {
         startAutoInterval();
       }
@@ -422,7 +406,7 @@ function disconnect() {
   stopAutoInterval();
 }
 
-// ── AUTO AI RESPONSE (гибрид: по таймеру или по счётчику) ────────
+// ── AUTO AI RESPONSE (каждые 10‑20 сек на случайное сообщение) ───
 function startAutoInterval() {
   if (autoIntervalId) clearTimeout(autoIntervalId);
   scheduleNextAuto();
@@ -432,29 +416,9 @@ function scheduleNextAuto() {
   if (!connected || !document.getElementById('readAll').checked) return;
   const delay = AUTO_TIME_MIN + Math.floor(Math.random() * (AUTO_TIME_MAX - AUTO_TIME_MIN));
   autoIntervalId = setTimeout(() => {
-    // Таймер сработал — если есть сообщения, отвечаем
-    if (recentMessages.length > 0) {
-      performAutoResponse();
-    }
+    performAutoResponse();
     scheduleNextAuto();
   }, delay);
-}
-
-function resetAutoTimer() {
-  if (autoIntervalId) {
-    clearTimeout(autoIntervalId);
-    scheduleNextAuto();
-  }
-}
-
-function incrementAutoCounter() {
-  if (!document.getElementById('readAll').checked) return;
-  autoMessageCounter++;
-  if (autoMessageCounter >= AUTO_MSG_THRESHOLD) {
-    performAutoResponse();
-    autoMessageCounter = 0;
-    resetAutoTimer(); // сбрасываем таймер после ответа по счётчику
-  }
 }
 
 function stopAutoInterval() {
@@ -462,20 +426,22 @@ function stopAutoInterval() {
     clearTimeout(autoIntervalId);
     autoIntervalId = null;
   }
-  autoMessageCounter = 0;
 }
 
 async function performAutoResponse() {
   if (!connected) return;
+  if (unansweredMessages.length === 0) return;
+
+  // Выбираем случайное сообщение
+  const randomIndex = Math.floor(Math.random() * unansweredMessages.length);
+  const msg = unansweredMessages[randomIndex];
+  // Удаляем его из массива, чтобы не отвечать повторно
+  unansweredMessages.splice(randomIndex, 1);
+
   const apiKey = document.getElementById('apikey').value.trim();
   if (!apiKey) return;
-  if (recentMessages.length === 0) return;
 
-  // Формируем контекст
-  const contextMessages = recentMessages.slice(-10).map(m => `${m.author}: ${m.text}`).join('\n');
-  const systemPrompt = getSystemPrompt();
-  const userPrompt = `Вот последние сообщения чата:\n${contextMessages}\n\nПридумай смешной комментарий или шутку, соответствующую твоей личности. Ответ должен быть КОРОТКИМ (1-2 предложения). Отвечай на том же языке, что и чат.`;
-
+  // Генерируем AI-ответ на это сообщение
   try {
     const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
@@ -484,37 +450,39 @@ async function performAutoResponse() {
         model: 'llama-3.3-70b-versatile',
         max_tokens: 120,
         messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt }
+          { role: 'system', content: getSystemPrompt() },
+          { role: 'user', content: msg.text }
         ]
       })
     });
     const data = await resp.json();
     if (data.choices && data.choices[0]) {
       const answer = data.choices[0].message.content.trim();
-      addAIMessageToFeed(answer);
+      // Добавляем в ленту как ответ бота
+      addAIMessageToFeed(answer, msg.author);
+      // Озвучиваем
       let speechText = answer;
       if (document.getElementById('readNickAll').checked) {
-        speechText = `Бот говорит: ${answer}`;
+        speechText = `Бот отвечает ${msg.author}: ${answer}`;
+      } else {
+        speechText = answer;
       }
       speechText = censorText(speechText);
       enqueueSpeak(speechText, null);
-    } else {
-      console.warn('Auto response error:', data);
     }
   } catch (e) {
-    console.error('Auto response fetch error:', e);
+    console.error('Auto response error:', e);
   }
 }
 
-function addAIMessageToFeed(text) {
+function addAIMessageToFeed(text, replyTo) {
   const div = document.createElement('div');
   div.className = 'msg';
   div.innerHTML = `
     <div class="msg-av" style="background:#1a1025;color:#9147ff">AI</div>
     <div class="msg-body">
       <div class="msg-meta">
-        <span class="msg-author" style="color:#9147ff">🤖 Бот</span>
+        <span class="msg-author" style="color:#9147ff">🤖 Бот → @${esc(replyTo)}</span>
         <span class="msg-time">${getTime()}</span>
       </div>
       <div class="msg-text">${esc(text)}</div>
@@ -549,21 +517,15 @@ function handleMsg(author, text, color) {
   const isCmd = text.toLowerCase().startsWith(trigger.toLowerCase());
   const readComment = document.getElementById('readComment').checked;
 
-  // Добавляем в контекст (игнорируем команды)
+  // Добавляем в непрочитанные, если это не команда
   if (!isCmd) {
-    recentMessages.push({ author, text, timestamp: Date.now() });
-    if (recentMessages.length > CONTEXT_SIZE) recentMessages.shift();
-    // Увеличиваем счётчик для авто‑ответа
-    incrementAutoCounter();
+    unansweredMessages.push({ author, text, timestamp: Date.now() });
   }
 
-  // Add to sidebar regardless
+  // Боковая панель
   const sidebarId = addSidebarItem(author, text, color, isCmd ? 'ai-reply' : null);
-
-  // Get AI comment for sidebar
   generateComment(text, author, sidebarId, readComment);
 
-  // Если команда !ai
   if (isCmd) {
     const question = text.slice(trigger.length).trim();
     if (!question) return;
@@ -578,16 +540,14 @@ function handleMsg(author, text, color) {
     return;
   }
 
-  // Обычное сообщение — показываем в фиде
   addMsgToFeed(author, text, color, false);
 }
 
-// Слушаем изменение чекбокса "readAll" для запуска/остановки авто‑ответов
+// Слушаем чекбокс авто‑ответов
 document.getElementById('readAll').addEventListener('change', function(e) {
   if (!connected) return;
   if (this.checked) {
     startAutoInterval();
-    autoMessageCounter = 0;
   } else {
     stopAutoInterval();
   }
