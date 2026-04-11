@@ -343,6 +343,12 @@ function processPendingItem(item){
     return;
   }
 
+  // 🔁 ДОБАВЛЕНО: если readAll выключен, но комментарий будет зачитан — сначала озвучиваем сообщение пользователя
+  if (!readAll && readComment) {
+    const speech = readNickAll ? (item.author+' говорит: '+item.text) : item.text;
+    enqueueSpeak(speech, item.sidebarId);
+  }
+  
   generateComment(item.text,item.author,item.sidebarId,readComment);
   if(readAll){
     const speech = readNickAll?(item.author+' говорит: '+item.text):item.text;
@@ -466,6 +472,12 @@ function handleMsg(author,text,color){
       startCooldown();
     });
     return;
+  }
+
+  // 🔁 ДОБАВЛЕНО: если readAll выключен, но комментарий будет зачитан — сначала озвучиваем сообщение пользователя
+  if (!readAll && readComment) {
+    const speech = readNickAll ? (author+' говорит: '+text) : text;
+    enqueueSpeak(speech, sidebarId);
   }
 
   generateComment(text,author,sidebarId,readComment);
