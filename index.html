@@ -182,8 +182,12 @@
       <span id="volVal">90%</span>
     </div>
     <div class="toggle-row">
-      <label class="tl">Произносить ник зрителя перед AI-ответом</label>
+      <label class="tl">Читать ник перед AI-ответом — формат: <span style="color:#9147ff">"Ник, ответ"</span></label>
       <label class="toggle"><input type="checkbox" id="readNick"/><span class="toggle-slider"></span></label>
+    </div>
+    <div class="toggle-row">
+      <label class="tl">Читать сообщение пользователя вслух, потом отвечать на него AI</label>
+      <label class="toggle"><input type="checkbox" id="readMsgThenReply"/><span class="toggle-slider"></span></label>
     </div>
     <div class="toggle-row">
       <label class="tl">Читать весь чат голосом (не только !ai)</label>
@@ -327,9 +331,13 @@ function processPendingItem(item){
     askGroq(item.author,question,(answer)=>{
       updateSidebarComment(item.sidebarId,answer);
       const readNick = document.getElementById('readNick').checked;
-      // Format: "Ник, ответ AI"
-      const speech = readNick ? (item.author+', '+answer) : answer;
-      enqueueSpeak(speech,item.sidebarId);
+      const readMsgThenReply = document.getElementById('readMsgThenReply').checked;
+      if(readMsgThenReply){
+        enqueueSpeak(item.author+' говорит: '+question, null);
+        enqueueSpeak(readNick ? (item.author+', '+answer) : answer, item.sidebarId);
+      } else {
+        enqueueSpeak(readNick ? (item.author+', '+answer) : answer, item.sidebarId);
+      }
       startCooldown();
     });
     return;
@@ -448,9 +456,13 @@ function handleMsg(author,text,color){
       updateLastAiReply(answer);
       updateSidebarComment(sidebarId,answer);
       const readNick=document.getElementById('readNick').checked;
-      // Format: "Ник, ответ AI"
-      const speech = readNick ? (author+', '+answer) : answer;
-      enqueueSpeak(speech,sidebarId);
+      const readMsgThenReply=document.getElementById('readMsgThenReply').checked;
+      if(readMsgThenReply){
+        enqueueSpeak(author+' говорит: '+question, null);
+        enqueueSpeak(readNick ? (author+', '+answer) : answer, sidebarId);
+      } else {
+        enqueueSpeak(readNick ? (author+', '+answer) : answer, sidebarId);
+      }
       startCooldown();
     });
     return;
