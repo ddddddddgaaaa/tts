@@ -7,26 +7,48 @@
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
   body{font-family:system-ui,sans-serif;background:#0e0e10;color:#efeff1;min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:24px 16px}
-  .app{width:100%;max-width:680px}
+  .app{width:100%;max-width:1100px}
   h1{font-size:20px;font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:10px}
   h1 .logo{background:#9147ff;border-radius:8px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
   h1 .logo svg{width:18px;height:18px;fill:#fff}
   .subtitle{font-size:13px;color:#adadb8;margin-bottom:20px}
   .card{background:#18181b;border:1px solid #2d2d35;border-radius:12px;padding:18px;margin-bottom:14px}
   .card h2{font-size:12px;font-weight:600;color:#adadb8;text-transform:uppercase;letter-spacing:.05em;margin-bottom:14px}
-  .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
   .field{margin-bottom:10px}
   .field:last-child{margin-bottom:0}
   .field label{font-size:12px;color:#adadb8;display:block;margin-bottom:5px}
-  .field input,.field select{width:100%;padding:8px 10px;font-size:14px;border:1px solid #2d2d35;border-radius:8px;background:#0e0e10;color:#efeff1;outline:none}
-  .field input:focus,.field select:focus{border-color:#9147ff;box-shadow:0 0 0 2px rgba(145,71,255,.2)}
-  .field input::placeholder{color:#555}
+  .field input,.field select,.field textarea{width:100%;padding:8px 10px;font-size:14px;border:1px solid #2d2d35;border-radius:8px;background:#0e0e10;color:#efeff1;outline:none;font-family:inherit}
+  .field textarea{resize:vertical;min-height:60px;line-height:1.4}
+  .field input:focus,.field select:focus,.field textarea:focus{border-color:#9147ff;box-shadow:0 0 0 2px rgba(145,71,255,.2)}
+  .field input::placeholder,.field textarea::placeholder{color:#555}
   .field .hint{font-size:11px;color:#777;margin-top:4px}
   .field .hint a{color:#9147ff;text-decoration:none}
+
+  /* persona */
+  .persona-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
+  .persona-card{background:#0e0e10;border:1px solid #2d2d35;border-radius:10px;padding:10px 12px;cursor:pointer;transition:all .15s}
+  .persona-card:hover{border-color:#555}
+  .persona-card.active{border-color:#9147ff;background:#1a1025}
+  .persona-card .p-name{font-size:13px;font-weight:600;margin-bottom:2px}
+  .persona-card .p-desc{font-size:11px;color:#777;line-height:1.4}
+  .persona-card .p-emoji{font-size:18px;margin-bottom:4px}
+
+  /* toggle */
+  .toggle-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-top:1px solid #2d2d35}
+  .toggle-row label.tl{font-size:13px;color:#adadb8;flex:1}
+  .toggle{position:relative;width:38px;height:20px;cursor:pointer;flex-shrink:0}
+  .toggle input{opacity:0;width:0;height:0}
+  .toggle-slider{position:absolute;inset:0;background:#2d2d35;border-radius:20px;transition:.2s}
+  .toggle-slider:before{content:'';position:absolute;width:14px;height:14px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s}
+  .toggle input:checked + .toggle-slider{background:#9147ff}
+  .toggle input:checked + .toggle-slider:before{transform:translateX(18px)}
+
   .btn-main{width:100%;padding:11px;background:#9147ff;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;margin-top:4px;transition:background .15s}
   .btn-main:hover{background:#7b2fe8}
   .btn-main.connected{background:#1db954}
   .btn-main.connected:hover{background:#17a34a}
+
   .status{display:flex;align-items:center;gap:10px;padding:10px 14px;background:#18181b;border:1px solid #2d2d35;border-radius:8px;margin-bottom:14px;font-size:13px;color:#adadb8}
   .dot{width:9px;height:9px;border-radius:50%;background:#555;flex-shrink:0;transition:background .3s}
   .dot.live{background:#1db954;animation:pulse 2s infinite}
@@ -39,11 +61,16 @@
   .wave span:nth-child(3){animation-delay:.2s}
   .wave span:nth-child(4){animation-delay:.3s}
   @keyframes wv{0%,100%{height:3px}50%{height:13px}}
-  .feed{background:#0e0e10;border:1px solid #2d2d35;border-radius:12px;padding:14px;height:320px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;margin-bottom:14px;scroll-behavior:smooth}
+
+  /* MAIN LAYOUT — chat + sidebar */
+  .main-layout{display:grid;grid-template-columns:1fr 320px;gap:14px;align-items:start}
+
+  .feed{background:#0e0e10;border:1px solid #2d2d35;border-radius:12px;padding:14px;height:420px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;scroll-behavior:smooth}
   .feed::-webkit-scrollbar{width:4px}
   .feed::-webkit-scrollbar-thumb{background:#2d2d35;border-radius:2px}
+
   .msg{display:flex;gap:8px}
-  .msg-av{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;color:#fff}
+  .msg-av{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
   .msg-body{flex:1;min-width:0}
   .msg-meta{font-size:12px;margin-bottom:2px}
   .msg-author{font-weight:600}
@@ -53,58 +80,125 @@
   .ai-label{font-size:11px;color:#9147ff;font-weight:600;margin-bottom:3px}
   .ai-text{font-size:13px;color:#c4c4cc;line-height:1.45}
   .system-msg{font-size:12px;color:#555;text-align:center;padding:4px 0}
-  .mode-btns{display:flex;gap:8px;margin-bottom:14px}
-  .mode-btn{flex:1;padding:8px 6px;background:#18181b;border:1px solid #2d2d35;border-radius:8px;color:#adadb8;font-size:13px;cursor:pointer;transition:all .15s;text-align:center}
-  .mode-btn.active{border-color:#9147ff;color:#bf8fff;background:#1a1025}
+
+  /* SIDEBAR */
+  .sidebar{display:flex;flex-direction:column;gap:0}
+  .sidebar-header{background:#18181b;border:1px solid #2d2d35;border-radius:12px 12px 0 0;padding:12px 14px;display:flex;align-items:center;gap:8px}
+  .sidebar-header .sh-icon{font-size:16px}
+  .sidebar-header .sh-title{font-size:13px;font-weight:600;color:#efeff1}
+  .sidebar-header .sh-sub{font-size:11px;color:#555;margin-left:auto}
+  .sidebar-feed{background:#0e0e10;border:1px solid #2d2d35;border-top:none;border-radius:0 0 12px 12px;height:420px;overflow-y:auto;display:flex;flex-direction:column;gap:0}
+  .sidebar-feed::-webkit-scrollbar{width:3px}
+  .sidebar-feed::-webkit-scrollbar-thumb{background:#2d2d35;border-radius:2px}
+
+  .sitem{padding:12px 14px;border-bottom:1px solid #1a1a22;transition:background .15s;position:relative}
+  .sitem:last-child{border-bottom:none}
+  .sitem.new{animation:slideIn .3s ease}
+  @keyframes slideIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+  .sitem.speaking-now{background:#1a1025}
+  .sitem-who{font-size:11px;font-weight:600;margin-bottom:3px;display:flex;align-items:center;gap:5px}
+  .sitem-who .badge{font-size:10px;padding:1px 6px;border-radius:10px;background:#2d2d35;color:#adadb8}
+  .sitem-who .badge.ai-reply{background:#2a1a40;color:#bf8fff}
+  .sitem-comment{font-size:13px;color:#efeff1;line-height:1.45;font-style:italic}
+  .sitem-thinking{font-size:12px;color:#555;display:flex;align-items:center;gap:5px}
+  .think-dots span{display:inline-block;animation:blink 1.2s infinite}
+  .think-dots span:nth-child(2){animation-delay:.2s}
+  .think-dots span:nth-child(3){animation-delay:.4s}
+  @keyframes blink{0%,80%,100%{opacity:.2}40%{opacity:1}}
+  .sitem-orig{font-size:11px;color:#444;margin-top:4px;word-break:break-word}
+  .speak-indicator{position:absolute;right:10px;top:12px;width:7px;height:7px;border-radius:50%;background:#9147ff;animation:pulse .6s infinite}
+
   .vol-row{display:flex;align-items:center;gap:10px;margin-top:10px}
   .vol-row label{font-size:12px;color:#adadb8;white-space:nowrap}
   .vol-row input[type=range]{flex:1;accent-color:#9147ff}
   .vol-row span{font-size:12px;color:#9147ff;min-width:32px;text-align:right}
-  .footer{text-align:center;font-size:12px;color:#444;margin-top:8px;line-height:1.8}
+  .footer{text-align:center;font-size:12px;color:#444;margin-top:14px;line-height:1.8}
   .footer a{color:#9147ff;text-decoration:none}
   .free-badge{display:inline-block;background:#1a3a1a;color:#1db954;font-size:11px;padding:2px 8px;border-radius:20px;margin-left:6px;font-weight:600}
+
+  @media(max-width:700px){
+    .main-layout{grid-template-columns:1fr}
+    .persona-grid{grid-template-columns:repeat(2,1fr)}
+  }
 </style>
 </head>
 <body>
 <div class="app">
   <h1>
-    <div class="logo">
-      <svg viewBox="0 0 24 24"><path d="M4.265 3L3 6.236v13.223h4.502V21l2.531.975L12.502 21h3.834l4.03-4.03V3H4.265zm16.101 13.307l-2.977 2.977H13.19l-1.875 1.875-1.875-1.875H5.5V5.5h14.866v10.807zM13.668 7.875h1.5v5.126h-1.5zm-3.75 0h1.5v5.126h-1.5z"/></svg>
-    </div>
+    <div class="logo"><svg viewBox="0 0 24 24"><path d="M4.265 3L3 6.236v13.223h4.502V21l2.531.975L12.502 21h3.834l4.03-4.03V3H4.265zm16.101 13.307l-2.977 2.977H13.19l-1.875 1.875-1.875-1.875H5.5V5.5h14.866v10.807zM13.668 7.875h1.5v5.126h-1.5zm-3.75 0h1.5v5.126h-1.5z"/></svg></div>
     Twitch AI Voice Bot
     <span class="free-badge">БЕСПЛАТНО</span>
   </h1>
-  <p class="subtitle">Читает чат и отвечает голосом · работает прямо в браузере</p>
+  <p class="subtitle">Читает чат, отвечает голосом и придумывает комментарии к каждому сообщению</p>
 
+  <!-- ПОДКЛЮЧЕНИЕ -->
   <div class="card">
-    <h2>Настройка</h2>
-    <div class="row">
+    <h2>Подключение</h2>
+    <div class="row2">
       <div class="field">
         <label>Канал Twitch</label>
         <input id="channel" type="text" placeholder="название_канала"/>
       </div>
       <div class="field">
-        <label>Команда (триггер)</label>
+        <label>Команда для AI-ответа</label>
         <input id="trigger" type="text" value="!ai"/>
       </div>
     </div>
     <div class="field">
       <label>Groq API ключ <span style="color:#1db954;font-size:11px">(бесплатно навсегда)</span></label>
       <input id="apikey" type="password" placeholder="gsk_..."/>
-      <div class="hint">
-        1. Зайди на <a href="https://console.groq.com" target="_blank">console.groq.com</a>
-        &nbsp;→&nbsp; 2. Войди через Google
-        &nbsp;→&nbsp; 3. <b>API Keys → Create API Key</b>
-        &nbsp;→&nbsp; 4. Вставь сюда
+      <div class="hint">Зайди на <a href="https://console.groq.com" target="_blank">console.groq.com</a> → войди через Google → <b>API Keys → Create API Key</b></div>
+    </div>
+    <button class="btn-main" id="connectBtn" onclick="toggleConnect()">Подключиться к чату</button>
+  </div>
+
+  <!-- ЛИЧНОСТЬ -->
+  <div class="card">
+    <h2>Личность бота</h2>
+    <div class="persona-grid">
+      <div class="persona-card active" onclick="selectPersona(this,'funny')">
+        <div class="p-emoji">😂</div>
+        <div class="p-name">Угарный</div>
+        <div class="p-desc">Шутит, мемы, абсурд, троллинг</div>
+      </div>
+      <div class="persona-card" onclick="selectPersona(this,'sarcastic')">
+        <div class="p-emoji">😏</div>
+        <div class="p-name">Саркастичный</div>
+        <div class="p-desc">Едко и снисходительно</div>
+      </div>
+      <div class="persona-card" onclick="selectPersona(this,'hype')">
+        <div class="p-emoji">🔥</div>
+        <div class="p-name">Хайп-машина</div>
+        <div class="p-desc">ОРЁТ КАПСОМ!! НЕВЕРОЯТНО!!</div>
+      </div>
+      <div class="persona-card" onclick="selectPersona(this,'wise')">
+        <div class="p-emoji">🧙</div>
+        <div class="p-name">Мудрец</div>
+        <div class="p-desc">Загадочно и глубокомысленно</div>
+      </div>
+      <div class="persona-card" onclick="selectPersona(this,'gamer')">
+        <div class="p-emoji">🎮</div>
+        <div class="p-name">Геймер</div>
+        <div class="p-desc">Всё = скилл, метагейм, билд</div>
+      </div>
+      <div class="persona-card" onclick="selectPersona(this,'custom')">
+        <div class="p-emoji">✏️</div>
+        <div class="p-name">Свой</div>
+        <div class="p-desc">Напиши свой промпт</div>
       </div>
     </div>
-    <div class="field">
-      <label>Личность бота</label>
-      <input id="persona" type="text" value="Ты веселый AI-ассистент на Twitch стриме. Отвечай кратко (1-2 предложения), на том же языке что написал зритель."/>
+    <div class="field" id="customField" style="display:none">
+      <label>Свой промпт</label>
+      <textarea id="customPrompt" placeholder="Ты бот на Twitch стриме. Отвечай кратко..."></textarea>
     </div>
-    <div class="row">
+  </div>
+
+  <!-- ГОЛОС -->
+  <div class="card">
+    <h2>Голос и поведение</h2>
+    <div class="row2">
       <div class="field">
-        <label>Голос</label>
+        <label>Голос TTS</label>
         <select id="voiceSelect"></select>
       </div>
       <div class="field">
@@ -122,92 +216,145 @@
       <input type="range" id="volRange" min="0" max="1" step="0.05" value="0.9"/>
       <span id="volVal">90%</span>
     </div>
-    <button class="btn-main" id="connectBtn" onclick="toggleConnect()">Подключиться к чату</button>
+    <div class="toggle-row">
+      <label class="tl">Произносить ник зрителя перед AI-ответом</label>
+      <label class="toggle"><input type="checkbox" id="readNick"/><span class="toggle-slider"></span></label>
+    </div>
+    <div class="toggle-row">
+      <label class="tl">Читать весь чат голосом (не только !ai)</label>
+      <label class="toggle"><input type="checkbox" id="readAll"/><span class="toggle-slider"></span></label>
+    </div>
+    <div class="toggle-row">
+      <label class="tl">Произносить ник при чтении всего чата</label>
+      <label class="toggle"><input type="checkbox" id="readNickAll" checked/><span class="toggle-slider"></span></label>
+    </div>
+    <div class="toggle-row">
+      <label class="tl">Зачитывать AI-комментарий вслух после сообщения</label>
+      <label class="toggle"><input type="checkbox" id="readComment" checked/><span class="toggle-slider"></span></label>
+    </div>
   </div>
 
-  <div class="status" id="statusBar">
+  <!-- STATUS -->
+  <div class="status">
     <div class="dot" id="statusDot"></div>
     <span id="statusText">Не подключено</span>
     <div class="wave" id="wave"><span></span><span></span><span></span><span></span></div>
   </div>
 
-  <div class="mode-btns">
-    <div class="mode-btn active" id="modeAi" onclick="setMode('ai')">Только <b>!ai</b> (AI отвечает)</div>
-    <div class="mode-btn" id="modeAll" onclick="setMode('all')">Читать весь чат голосом</div>
-    <div class="mode-btn" id="modeBoth" onclick="setMode('both')">Оба режима</div>
-  </div>
+  <!-- MAIN LAYOUT -->
+  <div class="main-layout">
+    <!-- ЧАТ -->
+    <div class="feed" id="feed">
+      <div class="system-msg">Чат появится здесь после подключения</div>
+    </div>
 
-  <div class="feed" id="feed">
-    <div class="system-msg">Чат появится здесь после подключения</div>
+    <!-- БОКОВАЯ ПАНЕЛЬ -->
+    <div class="sidebar">
+      <div class="sidebar-header">
+        <span class="sh-icon">🤖</span>
+        <span class="sh-title">AI комментирует чат</span>
+        <span class="sh-sub" id="commentCount">0 комментариев</span>
+      </div>
+      <div class="sidebar-feed" id="sidebarFeed">
+        <div style="padding:20px 14px;font-size:12px;color:#444;text-align:center;line-height:1.7">
+          После подключения AI будет придумывать<br/>смешной комментарий к каждому сообщению<br/>и зачитывать его вслух
+        </div>
+      </div>
+    </div>
   </div>
 
   <div class="footer">
-    AI: <a href="https://console.groq.com" target="_blank">Groq</a> (бесплатно навсегда) &nbsp;·&nbsp; Голос: встроенный браузерный TTS<br/>
-    Просто открой файл в Chrome и передай другу — больше ничего не нужно
+    AI: <a href="https://console.groq.com" target="_blank">Groq</a> (бесплатно навсегда) · Голос: браузерный TTS · Открой в Chrome
   </div>
 </div>
 
 <script>
-let ws = null;
-let connected = false;
-let mode = 'ai';
-let speaking = false;
-let speakQueue = [];
-let voices = [];
+// ── PERSONAS ──────────────────────────────────────────────────────
+const PERSONAS = {
+  funny: `Ты угарный AI-бот на Twitch стриме. Твоя цель — рассмешить чат.
+Отвечай ОЧЕНЬ КРАТКО (1-2 предложения), шути, придумывай абсурдные сравнения, иногда неожиданно переключайся на несвязанную тему, добавляй мемные отсылки. Можешь по-доброму подколоть зрителя. Отвечай на том же языке что вопрос.`,
+  sarcastic: `Ты саркастичный AI-бот на Twitch стриме. Считаешь себя умнее всех.
+Отвечай ОЧЕНЬ КРАТКО (1-2 предложения), едкий сарказм, снисходительный тон. Добавляй "очевидно же", "серьёзно?". Отвечай на том же языке что вопрос.`,
+  hype: `Ты ХАЙП-БОТ на Twitch!! Всё НЕВЕРОЯТНО!
+Отвечай ОЧЕНЬ КРАТКО (1-2 предложения), КАПС для ключевых слов, много!!!, называй зрителей ЛЕГЕНДАМИ. Отвечай на том же языке что вопрос.`,
+  wise: `Ты загадочный мудрый AI-бот на Twitch. Говоришь как древний философ.
+Отвечай ОЧЕНЬ КРАТКО (1-2 предложения), метафоры, притчи, глубокомысленный но слегка бессмысленный тон... Отвечай на том же языке что вопрос.`,
+  gamer: `Ты AI-бот хардкорный геймер на Twitch. Весь мир — игра.
+Отвечай ОЧЕНЬ КРАТКО (1-2 предложения), переводи всё на игровые термины (скилл, рейтинг, метагейм, билд, нерф, буст, спидран). Отвечай на том же языке что вопрос.`,
+  custom: ''
+};
 
-// voices
+// Промпт для боковых комментариев — отдельный от личности
+const COMMENT_PROMPTS = {
+  funny: `Ты саркастичный и угарный комментатор Twitch чата. Тебе показывают сообщение от зрителя, и ты должен придумать КОРОТКИЙ (1 предложение) смешной или абсурдный комментарий к нему — как будто ты диджей на радио который прикалывается над слушателями. Никогда не будь серьёзным. Отвечай на том же языке что сообщение. Отвечай ТОЛЬКО комментарием, без предисловий.`,
+  sarcastic: `Ты невероятно саркастичный комментатор Twitch чата. Тебе показывают сообщение зрителя, и ты выдаёшь КОРОТКИЙ (1 предложение) едкий саркастичный комментарий — как Дрейк который смотрит на это свысока. Отвечай на том же языке что сообщение. Отвечай ТОЛЬКО комментарием.`,
+  hype: `Ты ХАЙП-комментатор Twitch чата!! Тебе показывают сообщение зрителя, и ты выдаёшь КОРОТКИЙ (1 предложение) НЕВЕРОЯТНО ХАЙПОВЫЙ комментарий с КАПСОМ и!!!. Отвечай на том же языке что сообщение. Отвечай ТОЛЬКО комментарием.`,
+  wise: `Ты мудрый загадочный комментатор Twitch чата. Тебе показывают сообщение зрителя, и ты выдаёшь КОРОТКИЙ (1 предложение) глубокомысленный но слегка абсурдный комментарий как древний мудрец... Отвечай на том же языке что сообщение. Отвечай ТОЛЬКО комментарием.`,
+  gamer: `Ты геймер-комментатор Twitch чата. Тебе показывают сообщение зрителя, и ты выдаёшь КОРОТКИЙ (1 предложение) комментарий через призму гейминга — скилл, метагейм, рейтинг, нерф. Отвечай на том же языке что сообщение. Отвечай ТОЛЬКО комментарием.`,
+  custom: `Ты остроумный комментатор Twitch чата. Тебе показывают сообщение зрителя, и ты выдаёшь КОРОТКИЙ (1 предложение) смешной комментарий к нему. Отвечай на том же языке что сообщение. Отвечай ТОЛЬКО комментарием.`
+};
+
+let currentPersona = 'funny';
+
+function selectPersona(el, key) {
+  document.querySelectorAll('.persona-card').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  currentPersona = key;
+  document.getElementById('customField').style.display = key === 'custom' ? 'block' : 'none';
+}
+
+function getSystemPrompt() {
+  if (currentPersona === 'custom') return document.getElementById('customPrompt').value.trim() || PERSONAS.funny;
+  return PERSONAS[currentPersona];
+}
+function getCommentPrompt() {
+  return COMMENT_PROMPTS[currentPersona] || COMMENT_PROMPTS.custom;
+}
+
+// ── STATE ─────────────────────────────────────────────────────────
+let ws = null, connected = false, speaking = false, speakQueue = [], voices = [];
+let commentCount = 0;
+let currentSidebarItem = null;
+
+// ── VOICES ────────────────────────────────────────────────────────
 function loadVoices() {
   voices = window.speechSynthesis.getVoices();
   const sel = document.getElementById('voiceSelect');
   sel.innerHTML = '';
-  const ruVoices = voices.filter(v => v.lang.startsWith('ru'));
-  const otherVoices = voices.filter(v => !v.lang.startsWith('ru'));
-  [...ruVoices, ...otherVoices].forEach(v => {
-    const opt = document.createElement('option');
-    opt.value = v.name;
-    opt.textContent = v.name + ' (' + v.lang + ')';
-    sel.appendChild(opt);
+  const ru = voices.filter(v => v.lang.startsWith('ru'));
+  const other = voices.filter(v => !v.lang.startsWith('ru'));
+  [...ru, ...other].forEach(v => {
+    const o = document.createElement('option');
+    o.value = v.name;
+    o.textContent = v.name + ' (' + v.lang + ')';
+    sel.appendChild(o);
   });
 }
 window.speechSynthesis.onvoiceschanged = loadVoices;
 loadVoices();
-
 document.getElementById('volRange').oninput = function() {
   document.getElementById('volVal').textContent = Math.round(this.value * 100) + '%';
 };
 
-function setMode(m) {
-  mode = m;
-  ['Ai','All','Both'].forEach(x => {
-    document.getElementById('mode' + x).classList.toggle('active', x.toLowerCase() === m);
-  });
-}
-
-function toggleConnect() {
-  connected ? disconnect() : connect();
-}
+// ── CONNECT ───────────────────────────────────────────────────────
+function toggleConnect() { connected ? disconnect() : connect(); }
 
 function connect() {
   const channel = document.getElementById('channel').value.trim().toLowerCase();
   if (!channel) { alert('Введи название канала!'); return; }
   if (!document.getElementById('apikey').value.trim()) { alert('Введи Groq API ключ!'); return; }
-
   setStatus('connecting', 'Подключение к #' + channel + '...');
-
   ws = new WebSocket('wss://irc-ws.chat.twitch.tv:443');
-
   ws.onopen = () => {
     ws.send('CAP REQ :twitch.tv/tags twitch.tv/commands');
-    ws.send('PASS oauth:justinfan' + Math.floor(Math.random() * 99999));
-    ws.send('NICK justinfan' + Math.floor(Math.random() * 99999));
+    ws.send('PASS oauth:justinfan' + Math.floor(Math.random()*99999));
+    ws.send('NICK justinfan' + Math.floor(Math.random()*99999));
     ws.send('JOIN #' + channel);
   };
-
   ws.onmessage = (e) => {
     if (e.data.includes('PING')) { ws.send('PONG :tmi.twitch.tv'); return; }
     parseIRC(e.data);
   };
-
   ws.onerror = () => setStatus('error', 'Ошибка подключения');
   ws.onclose = () => {
     if (connected) {
@@ -217,16 +364,16 @@ function connect() {
       document.getElementById('connectBtn').classList.remove('connected');
     }
   };
-
   setTimeout(() => {
     if (ws && ws.readyState === 1) {
       connected = true;
       setStatus('live', 'Подключено к #' + channel);
-      const btn = document.getElementById('connectBtn');
-      btn.textContent = 'Отключиться';
-      btn.classList.add('connected');
+      document.getElementById('connectBtn').textContent = 'Отключиться';
+      document.getElementById('connectBtn').classList.add('connected');
       clearFeed();
       addSystemMsg('Подключено к #' + channel + ' — слушаю чат...');
+      // clear sidebar placeholder
+      document.getElementById('sidebarFeed').innerHTML = '';
     }
   }, 1500);
 }
@@ -239,6 +386,7 @@ function disconnect() {
   document.getElementById('connectBtn').classList.remove('connected');
 }
 
+// ── IRC PARSER ────────────────────────────────────────────────────
 function parseIRC(raw) {
   raw.split('\r\n').forEach(line => {
     if (!line) return;
@@ -246,105 +394,182 @@ function parseIRC(raw) {
     if (line.startsWith('@')) {
       const tagStr = line.slice(1, line.indexOf(' '));
       const tags = {};
-      tagStr.split(';').forEach(t => { const [k,v] = t.split('='); tags[k] = v; });
+      tagStr.split(';').forEach(t => { const [k,v] = t.split('='); tags[k]=v; });
       if (tags['display-name']) author = tags['display-name'];
-      if (tags['color'] && tags['color']) color = tags['color'] || '#9147ff';
+      if (tags['color'] && tags['color'].startsWith('#')) color = tags['color'];
     }
     const match = line.match(/PRIVMSG #\S+ :(.+)/);
     if (!match) return;
     const text = match[1].trim();
-    const loginMatch = line.match(/:([^!]+)!/);
-    if (loginMatch && author === 'anon') author = loginMatch[1];
+    const lm = line.match(/:([^!]+)!/);
+    if (lm && author === 'anon') author = lm[1];
     handleMsg(author, text, color);
   });
 }
 
+// ── HANDLE MESSAGE ────────────────────────────────────────────────
 function handleMsg(author, text, color) {
   const trigger = document.getElementById('trigger').value.trim();
   const isCmd = text.toLowerCase().startsWith(trigger.toLowerCase());
+  const readAll = document.getElementById('readAll').checked;
+  const readNickAll = document.getElementById('readNickAll').checked;
+  const readComment = document.getElementById('readComment').checked;
 
-  if (mode === 'all' || mode === 'both') {
-    addMsgToFeed(author, text, color, false);
-    if (!isCmd) enqueueSpeak(author + ' говорит: ' + text);
-  }
+  // Add to sidebar
 
-  if ((mode === 'ai' || mode === 'both') && isCmd) {
-    const question = text.slice(trigger.length).trim();
-    if (!question) return;
-    if (mode === 'ai') addMsgToFeed(author, text, color, true);
-    askGroq(author, question, (answer) => {
-      updateLastAiReply(answer);
-      enqueueSpeak(answer);
-    });
+// ── SIDEBAR ───────────────────────────────────────────────────────
+function addSidebarItem(author, text, color, badge) {
+  const sf = document.getElementById('sidebarFeed');
+  const id = 'si_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+  const div = document.createElement('div');
+  div.className = 'sitem new';
+  div.id = id;
+  const badgeHtml = badge ? `<span class="badge ${badge}">${badge === 'ai-reply' ? '!ai' : badge}</span>` : '';
+  div.innerHTML = `
+    <div class="sitem-who" style="color:${color}">
+      ${esc(author)} ${badgeHtml}
+    </div>
+    <div class="sitem-thinking">
+      <span>AI думает</span>
+      <span class="think-dots"><span>.</span><span>.</span><span>.</span></span>
+    </div>
+    <div class="sitem-orig">${esc(text.length > 60 ? text.slice(0,60)+'…' : text)}</div>`;
+  sf.appendChild(div);
+  sf.scrollTop = sf.scrollHeight;
+  commentCount++;
+  document.getElementById('commentCount').textContent = commentCount + ' комментариев';
+  return id;
+}
+
+function updateSidebarComment(id, comment) {
+  const item = document.getElementById(id);
+  if (!item) return;
+  const thinking = item.querySelector('.sitem-thinking');
+  if (thinking) thinking.remove();
+  const el = document.createElement('div');
+  el.className = 'sitem-comment';
+  el.textContent = '💬 ' + comment;
+  item.insertBefore(el, item.querySelector('.sitem-orig'));
+}
+
+function markSidebarSpeaking(id, on) {
+  if (!id) return;
+  const item = document.getElementById(id);
+  if (!item) return;
+  item.classList.toggle('speaking-now', on);
+  const existing = item.querySelector('.speak-indicator');
+  if (on && !existing) {
+    const dot = document.createElement('div');
+    dot.className = 'speak-indicator';
+    item.appendChild(dot);
+    item.scrollIntoView({behavior:'smooth', block:'nearest'});
+  } else if (!on && existing) {
+    existing.remove();
   }
 }
 
-// ── GROQ API ─────────────────────────────────────────────────────
-async function askGroq(author, question, callback) {
+// ── GENERATE COMMENT ──────────────────────────────────────────────
+async function generateComment(text, author, sidebarId, readAloud) {
   const apiKey = document.getElementById('apikey').value.trim();
-  const persona = document.getElementById('persona').value.trim();
+  if (!apiKey) return;
+  // skip very short messages / spam
+  if (text.length < 3) {
+    updateSidebarComment(sidebarId, '(слишком коротко для комментария)');
+    return;
+  }
   try {
     const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + apiKey
-      },
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey },
       body: JSON.stringify({
         model: 'llama-3.3-70b-versatile',
-        max_tokens: 150,
+        max_tokens: 80,
         messages: [
-          { role: 'system', content: persona },
-          { role: 'user', content: question }
+          { role: 'system', content: getCommentPrompt() },
+          { role: 'user', content: `Сообщение от ${author}: "${text}"` }
         ]
       })
     });
     const data = await resp.json();
     if (data.choices && data.choices[0]) {
-      callback(data.choices[0].message.content.trim());
+      const comment = data.choices[0].message.content.trim();
+      updateSidebarComment(sidebarId, comment);
+      if (readAloud) {
+        enqueueComment(comment, sidebarId);
+      }
     } else {
-      callback('Ошибка: ' + (data.error?.message || 'нет ответа'));
+      updateSidebarComment(sidebarId, '...');
     }
   } catch(e) {
-    callback('Ошибка соединения: ' + e.message);
+    updateSidebarComment(sidebarId, '(ошибка)');
   }
 }
 
-// ── TTS ───────────────────────────────────────────────────────────
-function enqueueSpeak(text) {
-  speakQueue.push(text);
-  if (!speaking) processQueue();
+// ── GROQ API (main answers) ───────────────────────────────────────
+async function askGroq(author, question, callback) {
+  const apiKey = document.getElementById('apikey').value.trim();
+  try {
+    const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey },
+      body: JSON.stringify({
+        model: 'llama-3.3-70b-versatile',
+        max_tokens: 120,
+        messages: [
+          { role: 'system', content: getSystemPrompt() },
+          { role: 'user', content: question }
+        ]
+      })
+    });
+    const data = await resp.json();
+    if (data.choices && data.choices[0]) callback(data.choices[0].message.content.trim());
+    else callback('Ошибка: ' + (data.error?.message || 'нет ответа'));
+  } catch(e) { callback('Ошибка: ' + e.message); }
 }
 
-function processQueue() {
-  if (!speakQueue.length) { speaking = false; setWave(false); return; }
-  speaking = true;
-  setWave(true);
-  const utt = new SpeechSynthesisUtterance(speakQueue.shift());
+// ── TTS QUEUE ─────────────────────────────────────────────────────
+// Two queues: main (chat reading / AI replies) and comments (sidebar)
+// Comments play after main queue item finishes
+let mainQueue = [];   // {text, sidebarId}
+let commentQueue = []; // {text, sidebarId}
+let isSpeaking = false;
+
+function enqueueSpeak(text, sidebarId) {
+  mainQueue.push({text, sidebarId, type:'main'});
+  if (!isSpeaking) processNextSpeech();
+}
+
+function enqueueComment(text, sidebarId) {
+  commentQueue.push({text, sidebarId, type:'comment'});
+  if (!isSpeaking) processNextSpeech();
+}
+
+function processNextSpeech() {
+  // main first, then comments
+  let item = mainQueue.length ? mainQueue.shift() : commentQueue.length ? commentQueue.shift() : null;
+  if (!item) { isSpeaking = false; setWave(false); return; }
+  isSpeaking = true; setWave(true);
+  if (item.sidebarId) markSidebarSpeaking(item.sidebarId, true);
+  const utt = new SpeechSynthesisUtterance(item.text);
   const v = voices.find(x => x.name === document.getElementById('voiceSelect').value);
   if (v) utt.voice = v;
   utt.rate = parseFloat(document.getElementById('rateSelect').value);
   utt.volume = parseFloat(document.getElementById('volRange').value);
-  utt.onend = processQueue;
-  utt.onerror = processQueue;
+  utt.onend = () => { if (item.sidebarId) markSidebarSpeaking(item.sidebarId, false); processNextSpeech(); };
+  utt.onerror = () => { if (item.sidebarId) markSidebarSpeaking(item.sidebarId, false); processNextSpeech(); };
   window.speechSynthesis.speak(utt);
 }
 
 // ── FEED UI ───────────────────────────────────────────────────────
 function clearFeed() { document.getElementById('feed').innerHTML = ''; }
 function addSystemMsg(t) {
-  const el = document.createElement('div');
-  el.className = 'system-msg';
-  el.textContent = t;
-  appendFeed(el);
+  const el = document.createElement('div'); el.className='system-msg'; el.textContent=t; appendFeed(el);
 }
-
 let lastAiBox = null;
-
 function addMsgToFeed(author, text, color, isCmd) {
   const initials = author.slice(0,2).toUpperCase();
   const bg = hexSoft(color);
-  const id = 'ai_' + Date.now();
+  const boxId = 'ai_' + Date.now();
   const div = document.createElement('div');
   div.className = 'msg';
   div.innerHTML = `
@@ -355,51 +580,41 @@ function addMsgToFeed(author, text, color, isCmd) {
         <span class="msg-time">${getTime()}</span>
       </div>
       <div class="msg-text">${esc(text)}</div>
-      ${isCmd ? `<div class="ai-box" id="${id}"><div class="ai-label">⌛ AI думает...</div><div class="ai-text"></div></div>` : ''}
+      ${isCmd?`<div class="ai-box" id="${boxId}"><div class="ai-label">⌛ AI думает...</div><div class="ai-text"></div></div>`:''}
     </div>`;
   appendFeed(div);
-  if (isCmd) lastAiBox = document.getElementById(id);
+  if (isCmd) lastAiBox = document.getElementById(boxId);
 }
-
 function updateLastAiReply(answer) {
   if (!lastAiBox) return;
   lastAiBox.querySelector('.ai-label').textContent = '▶ AI ответил вслух';
   lastAiBox.querySelector('.ai-text').textContent = answer;
 }
-
 function appendFeed(el) {
-  const f = document.getElementById('feed');
-  f.appendChild(el);
-  f.scrollTop = f.scrollHeight;
+  const f = document.getElementById('feed'); f.appendChild(el); f.scrollTop = f.scrollHeight;
 }
 
 // ── STATUS ────────────────────────────────────────────────────────
 function setStatus(state, text) {
   const dot = document.getElementById('statusDot');
   dot.className = 'dot';
-  if (state === 'live') dot.classList.add('live');
-  if (state === 'speaking') dot.classList.add('speaking');
+  if (state==='live') dot.classList.add('live');
+  if (state==='speaking') dot.classList.add('speaking');
   document.getElementById('statusText').textContent = text;
 }
-
 function setWave(show) {
   document.getElementById('wave').classList.toggle('show', show);
-  if (show) setStatus('speaking', 'Бот говорит...');
-  else if (connected) setStatus('live', 'Подключено к #' + document.getElementById('channel').value.trim());
+  if (show) setStatus('speaking','Бот говорит...');
+  else if (connected) setStatus('live','Подключено к #'+document.getElementById('channel').value.trim());
 }
 
 // ── UTILS ─────────────────────────────────────────────────────────
-function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-function getTime() {
-  const d = new Date();
-  return d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
-}
-function hexSoft(hex) {
-  if (!hex || !hex.startsWith('#')) return '#1a1025';
-  try {
-    const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
-    return `rgba(${r},${g},${b},0.15)`;
-  } catch(e) { return '#1a1025'; }
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function getTime(){const d=new Date();return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');}
+function hexSoft(hex){
+  if(!hex||!hex.startsWith('#'))return'#1a1025';
+  try{const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);return`rgba(${r},${g},${b},0.15)`;}
+  catch(e){return'#1a1025';}
 }
 </script>
 </body>
