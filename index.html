@@ -415,7 +415,36 @@ function handleMsg(author, text, color) {
   const readNickAll = document.getElementById('readNickAll').checked;
   const readComment = document.getElementById('readComment').checked;
 
-  // Add to sidebar
+  // Add to sidebar regardless
+  const sidebarId = addSidebarItem(author, text, color, isCmd ? 'ai-reply' : null);
+
+  // Get AI comment for sidebar
+  generateComment(text, author, sidebarId, readComment);
+
+  if (readAll && !isCmd) {
+    addMsgToFeed(author, text, color, false);
+    const speech = readNickAll ? (author + ' говорит: ' + text) : text;
+    enqueueSpeak(speech, sidebarId);
+    return;
+  }
+
+  if (isCmd) {
+    const question = text.slice(trigger.length).trim();
+    if (!question) return;
+    addMsgToFeed(author, text, color, true);
+    askGroq(author, question, (answer) => {
+      updateLastAiReply(answer);
+      const readNick = document.getElementById('readNick').checked;
+      enqueueSpeak(readNick ? (author + ': ' + answer) : answer, sidebarId);
+    });
+    return;
+  }
+
+  // just show in feed if not reading all
+  if (!readAll) {
+    addMsgToFeed(author, text, color, false);
+  }
+}
 
 // ── SIDEBAR ───────────────────────────────────────────────────────
 function addSidebarItem(author, text, color, badge) {
