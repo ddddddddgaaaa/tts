@@ -3,638 +3,898 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Twitch AI Voice Bot</title>
+<title>Алина — токсичная фудкортница</title>
 <style>
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:system-ui,sans-serif;background:#0e0e10;color:#efeff1;min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:24px 16px}
-  .app{width:100%;max-width:1100px}
-  h1{font-size:20px;font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:10px}
-  h1 .logo{background:#9147ff;border-radius:8px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-  h1 .logo svg{width:18px;height:18px;fill:#fff}
-  .subtitle{font-size:13px;color:#adadb8;margin-bottom:20px}
-  .card{background:#18181b;border:1px solid #2d2d35;border-radius:12px;padding:18px;margin-bottom:14px}
-  .card h2{font-size:12px;font-weight:600;color:#adadb8;text-transform:uppercase;letter-spacing:.05em;margin-bottom:14px}
-  .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-  .field{margin-bottom:10px}
-  .field:last-child{margin-bottom:0}
-  .field label{font-size:12px;color:#adadb8;display:block;margin-bottom:5px}
-  .field input,.field select,.field textarea{width:100%;padding:8px 10px;font-size:14px;border:1px solid #2d2d35;border-radius:8px;background:#0e0e10;color:#efeff1;outline:none;font-family:inherit}
-  .field textarea{resize:vertical;min-height:60px;line-height:1.4}
-  .field input:focus,.field select:focus,.field textarea:focus{border-color:#9147ff;box-shadow:0 0 0 2px rgba(145,71,255,.2)}
-  .field input::placeholder,.field textarea::placeholder{color:#555}
-  .field .hint{font-size:11px;color:#777;margin-top:4px}
-  .field .hint a{color:#9147ff;text-decoration:none}
-  .persona-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
-  .persona-card{background:#0e0e10;border:1px solid #2d2d35;border-radius:10px;padding:10px 12px;cursor:pointer;transition:all .15s}
-  .persona-card:hover{border-color:#555}
-  .persona-card.active{border-color:#9147ff;background:#1a1025}
-  .persona-card .p-name{font-size:13px;font-weight:600;margin-bottom:2px}
-  .persona-card .p-desc{font-size:11px;color:#777;line-height:1.4}
-  .persona-card .p-emoji{font-size:18px;margin-bottom:4px}
-  .toggle-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-top:1px solid #2d2d35}
-  .toggle-row label.tl{font-size:13px;color:#adadb8;flex:1}
-  .toggle{position:relative;width:38px;height:20px;cursor:pointer;flex-shrink:0}
-  .toggle input{opacity:0;width:0;height:0}
-  .toggle-slider{position:absolute;inset:0;background:#2d2d35;border-radius:20px;transition:.2s}
-  .toggle-slider:before{content:'';position:absolute;width:14px;height:14px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s}
-  .toggle input:checked + .toggle-slider{background:#9147ff}
-  .toggle input:checked + .toggle-slider:before{transform:translateX(18px)}
-  .btn-main{width:100%;padding:11px;background:#9147ff;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;margin-top:4px;transition:background .15s}
-  .btn-main:hover{background:#7b2fe8}
-  .btn-main.connected{background:#1db954}
-  .btn-main.connected:hover{background:#17a34a}
-  .status{display:flex;align-items:center;gap:10px;padding:10px 14px;background:#18181b;border:1px solid #2d2d35;border-radius:8px;margin-bottom:14px;font-size:13px;color:#adadb8}
-  .dot{width:9px;height:9px;border-radius:50%;background:#555;flex-shrink:0;transition:background .3s}
-  .dot.live{background:#1db954;animation:pulse 2s infinite}
-  .dot.speaking{background:#9147ff;animation:pulse .7s infinite}
-  .dot.cooldown{background:#f59e0b;animation:pulse 1s infinite}
-  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
-  .wave{display:none;align-items:flex-end;gap:2px;height:14px}
-  .wave.show{display:flex}
-  .wave span{width:3px;background:#9147ff;border-radius:2px;animation:wv .8s ease-in-out infinite}
-  .wave span:nth-child(2){animation-delay:.1s}
-  .wave span:nth-child(3){animation-delay:.2s}
-  .wave span:nth-child(4){animation-delay:.3s}
-  @keyframes wv{0%,100%{height:3px}50%{height:13px}}
-  .main-layout{display:grid;grid-template-columns:1fr 320px;gap:14px;align-items:start}
-  .feed{background:#0e0e10;border:1px solid #2d2d35;border-radius:12px;padding:14px;height:420px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;scroll-behavior:smooth}
-  .feed::-webkit-scrollbar{width:4px}
-  .feed::-webkit-scrollbar-thumb{background:#2d2d35;border-radius:2px}
-  .msg{display:flex;gap:8px}
-  .msg-av{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
-  .msg-body{flex:1;min-width:0}
-  .msg-meta{font-size:12px;margin-bottom:2px}
-  .msg-author{font-weight:600}
-  .msg-time{color:#555;margin-left:4px}
-  .msg-text{font-size:14px;color:#c4c4cc;line-height:1.45;word-break:break-word}
-  .ai-box{background:#1a1025;border-left:2px solid #9147ff;border-radius:0 6px 6px 0;padding:8px 10px;margin-top:6px}
-  .ai-label{font-size:11px;color:#9147ff;font-weight:600;margin-bottom:3px}
-  .ai-text{font-size:13px;color:#c4c4cc;line-height:1.45}
-  .system-msg{font-size:12px;color:#555;text-align:center;padding:4px 0}
-  .sidebar{display:flex;flex-direction:column;gap:0}
-  .sidebar-header{background:#18181b;border:1px solid #2d2d35;border-radius:12px 12px 0 0;padding:12px 14px;display:flex;align-items:center;gap:8px}
-  .sidebar-header .sh-icon{font-size:16px}
-  .sidebar-header .sh-title{font-size:13px;font-weight:600;color:#efeff1}
-  .sidebar-header .sh-sub{font-size:11px;color:#555;margin-left:auto}
-  .sidebar-feed{background:#0e0e10;border:1px solid #2d2d35;border-top:none;border-radius:0 0 12px 12px;height:420px;overflow-y:auto;display:flex;flex-direction:column;gap:0}
-  .sidebar-feed::-webkit-scrollbar{width:3px}
-  .sidebar-feed::-webkit-scrollbar-thumb{background:#2d2d35;border-radius:2px}
-  .sitem{padding:12px 14px;border-bottom:1px solid #1a1a22;transition:background .15s;position:relative}
-  .sitem:last-child{border-bottom:none}
-  .sitem.new{animation:slideIn .3s ease}
-  @keyframes slideIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
-  .sitem.speaking-now{background:#1a1025}
-  .sitem-who{font-size:11px;font-weight:600;margin-bottom:3px;display:flex;align-items:center;gap:5px}
-  .sitem-who .badge{font-size:10px;padding:1px 6px;border-radius:10px;background:#2d2d35;color:#adadb8}
-  .sitem-who .badge.ai-reply{background:#2a1a40;color:#bf8fff}
-  .sitem-who .badge.queued{background:#2a1e00;color:#f59e0b}
-  .sitem-comment{font-size:13px;color:#efeff1;line-height:1.45;font-style:italic}
-  .sitem-thinking{font-size:12px;color:#555;display:flex;align-items:center;gap:5px}
-  .think-dots span{display:inline-block;animation:blink 1.2s infinite}
-  .think-dots span:nth-child(2){animation-delay:.2s}
-  .think-dots span:nth-child(3){animation-delay:.4s}
-  @keyframes blink{0%,80%,100%{opacity:.2}40%{opacity:1}}
-  .sitem-orig{font-size:11px;color:#444;margin-top:4px;word-break:break-word}
-  .speak-indicator{position:absolute;right:10px;top:12px;width:7px;height:7px;border-radius:50%;background:#9147ff;animation:pulse .6s infinite}
-  .queue-label{font-size:11px;color:#f59e0b;margin-top:3px}
-  .vol-row{display:flex;align-items:center;gap:10px;margin-top:10px}
-  .vol-row label{font-size:12px;color:#adadb8;white-space:nowrap}
-  .vol-row input[type=range]{flex:1;accent-color:#9147ff}
-  .vol-row span{font-size:12px;color:#9147ff;min-width:32px;text-align:right}
-  .footer{text-align:center;font-size:12px;color:#444;margin-top:14px;line-height:1.8}
-  .footer a{color:#9147ff;text-decoration:none}
-  .free-badge{display:inline-block;background:#1a3a1a;color:#1db954;font-size:11px;padding:2px 8px;border-radius:20px;margin-left:6px;font-weight:600}
-  @media(max-width:700px){.main-layout{grid-template-columns:1fr}.persona-grid{grid-template-columns:repeat(2,1fr)}}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#0a0a0d;color:#efeff1;min-height:100vh;display:flex;justify-content:center;padding:20px 14px}
+.app{width:100%;max-width:1150px}
+.header{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+.alina-av{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#e535ab,#ff6b6b);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;border:2px solid #e535ab44}
+h1{font-size:20px;font-weight:700;background:linear-gradient(90deg,#e535ab,#ff9a6c);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.tagline{font-size:12px;color:#666;margin-bottom:18px;padding-left:56px}
+.card{background:#111115;border:1px solid #222228;border-radius:14px;padding:16px;margin-bottom:12px}
+.card h2{font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.08em;margin-bottom:13px;display:flex;align-items:center;gap:7px}
+.card h2 .ico{font-size:14px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.row4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px}
+.field{margin-bottom:9px}
+.field:last-child{margin-bottom:0}
+.field label{font-size:11px;color:#888;display:block;margin-bottom:4px}
+.field input,.field select,.field textarea{width:100%;padding:7px 10px;font-size:13px;border:1px solid #2a2a32;border-radius:8px;background:#0a0a0d;color:#efeff1;outline:none;font-family:inherit;transition:border-color .15s}
+.field textarea{resize:vertical;min-height:50px;line-height:1.4}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:#e535ab}
+.field input::placeholder{color:#444}
+.trow{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-top:1px solid #1a1a22}
+.trow label.tl{font-size:12px;color:#aaa;flex:1;padding-right:12px;line-height:1.4}
+.tog{position:relative;width:36px;height:19px;cursor:pointer;flex-shrink:0}
+.tog input{opacity:0;width:0;height:0}
+.tog-sl{position:absolute;inset:0;background:#2a2a32;border-radius:20px;transition:.2s}
+.tog-sl:before{content:'';position:absolute;width:13px;height:13px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s}
+.tog input:checked+.tog-sl{background:#e535ab}
+.tog input:checked+.tog-sl:before{transform:translateX(16px)}
+.btn{width:100%;padding:10px;background:#e535ab;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;margin-top:4px}
+.btn:hover{background:#c42090}
+.btn.on{background:#1db954}.btn.on:hover{background:#17a34a}
+.btn-sm{padding:5px 12px;font-size:11px;border:1px solid #2a2a32;border-radius:6px;background:#0a0a0d;color:#aaa;cursor:pointer;transition:all .15s;white-space:nowrap}
+.btn-sm:hover{border-color:#e535ab;color:#e535ab}
+.btn-sm.active{background:#2a1025;border-color:#e535ab;color:#e535ab}
+.status{display:flex;align-items:center;gap:9px;padding:9px 14px;background:#111115;border:1px solid #222228;border-radius:8px;margin-bottom:12px;font-size:12px;color:#888}
+.dot{width:8px;height:8px;border-radius:50%;background:#444;flex-shrink:0;transition:background .3s}
+.dot.live{background:#1db954;animation:pulse 2s infinite}
+.dot.speaking{background:#e535ab;animation:pulse .7s infinite}
+.dot.cool{background:#f59e0b;animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.wave{display:none;align-items:flex-end;gap:2px;height:13px;margin-left:2px}
+.wave.show{display:flex}
+.wave span{width:3px;background:#e535ab;border-radius:2px;animation:wv .8s ease-in-out infinite}
+.wave span:nth-child(2){animation-delay:.1s}.wave span:nth-child(3){animation-delay:.2s}.wave span:nth-child(4){animation-delay:.3s}
+@keyframes wv{0%,100%{height:3px}50%{height:12px}}
+.layout{display:grid;grid-template-columns:1fr 290px;gap:12px;align-items:start}
+.feed{background:#0a0a0d;border:1px solid #1a1a22;border-radius:12px;padding:12px;height:420px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;scroll-behavior:smooth}
+.feed::-webkit-scrollbar{width:3px}
+.feed::-webkit-scrollbar-thumb{background:#2a2a32;border-radius:2px}
+.msg{display:flex;gap:7px}
+.av{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0}
+.mb{flex:1;min-width:0}
+.mm{font-size:11px;margin-bottom:2px}
+.ma{font-weight:600}
+.mt{color:#444;margin-left:3px}
+.mx{font-size:13px;color:#bbb;line-height:1.4;word-break:break-word}
+.ai-box{background:#1a0818;border-left:2px solid #e535ab;border-radius:0 6px 6px 0;padding:7px 9px;margin-top:5px}
+.ai-lbl{font-size:10px;color:#e535ab;font-weight:600;margin-bottom:2px}
+.ai-tx{font-size:12px;color:#ccc;line-height:1.4}
+.sys{font-size:11px;color:#444;text-align:center;padding:3px 0}
+.sbar{display:flex;flex-direction:column}
+.sh{background:#111115;border:1px solid #222228;border-radius:12px 12px 0 0;padding:11px 13px;display:flex;align-items:center;gap:7px}
+.sh-ttl{font-size:12px;font-weight:600}
+.sh-cnt{font-size:11px;color:#444;margin-left:auto}
+.sf{background:#0a0a0d;border:1px solid #1a1a22;border-top:none;border-radius:0 0 12px 12px;height:420px;overflow-y:auto}
+.sf::-webkit-scrollbar{width:3px}
+.sf::-webkit-scrollbar-thumb{background:#2a2a32;border-radius:2px}
+.si{padding:10px 12px;border-bottom:1px solid #141420;position:relative;animation:slideIn .3s ease}
+.si:last-child{border-bottom:none}
+.si.speaking-now{background:#1a0818}
+@keyframes slideIn{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
+.si-who{font-size:11px;font-weight:600;margin-bottom:3px;display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.badge{font-size:9px;padding:1px 6px;border-radius:10px;background:#222;color:#888}
+.badge.ai{background:#2a1025;color:#e535ab}
+.badge.q{background:#2a1e00;color:#f59e0b}
+.badge.ev{background:#0a2a1a;color:#1db954}
+.badge.insight{background:#1a1a2a;color:#8888ff}
+.si-comment{font-size:12px;color:#efeff1;line-height:1.4;font-style:italic;margin-bottom:3px}
+.si-orig{font-size:10px;color:#333;word-break:break-word;margin-top:3px}
+.think{font-size:11px;color:#444;display:flex;align-items:center;gap:4px}
+.tdots span{display:inline-block;animation:blink 1.2s infinite}
+.tdots span:nth-child(2){animation-delay:.2s}.tdots span:nth-child(3){animation-delay:.4s}
+@keyframes blink{0%,80%,100%{opacity:.2}40%{opacity:1}}
+.spk-dot{position:absolute;right:9px;top:10px;width:6px;height:6px;border-radius:50%;background:#e535ab;animation:pulse .6s infinite}
+.memory-wrap{margin-top:10px}
+.memory-wrap label{font-size:11px;color:#555;display:block;margin-bottom:4px}
+.memory-panel{background:#0a0a0d;border:1px solid #1a1a22;border-radius:8px;padding:9px;font-size:11px;color:#555;line-height:1.6;max-height:70px;overflow-y:auto}
+.memory-panel::-webkit-scrollbar{width:2px}
+.memory-panel::-webkit-scrollbar-thumb{background:#2a2a32}
+.event-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:10px}
+.rating-box{background:#0a0a0d;border:1px solid #2a1025;border-radius:8px;padding:10px;margin-top:8px;display:none}
+.rating-box .rt{font-size:11px;color:#e535ab;font-weight:600;margin-bottom:7px}
+.ri{font-size:11px;color:#aaa;display:flex;align-items:center;gap:6px;padding:2px 0}
+.ri .rk{min-width:14px;color:#444}
+.ri .rn{flex:1;font-weight:500}
+.ri .rs{color:#e535ab}
+.screen-row{display:flex;align-items:center;gap:8px;margin-top:8px}
+.screen-preview{width:120px;height:67px;background:#0a0a0d;border:1px solid #222228;border-radius:6px;overflow:hidden;position:relative;flex-shrink:0}
+.screen-preview video{width:100%;height:100%;object-fit:cover;opacity:.7}
+.screen-preview .sp-label{position:absolute;bottom:3px;left:5px;font-size:9px;color:#666}
+.screen-info{flex:1;font-size:11px;color:#666;line-height:1.6}
+.vol-row{display:flex;align-items:center;gap:9px;margin-top:9px}
+.vol-row label{font-size:11px;color:#888;white-space:nowrap}
+.vol-row input[type=range]{flex:1;accent-color:#e535ab}
+.vol-row span{font-size:11px;color:#e535ab;min-width:30px;text-align:right}
+.separator{height:1px;background:#1a1a22;margin:10px 0}
+.promo-hint{font-size:10px;color:#f59e0b;margin-top:3px}
+footer{text-align:center;font-size:11px;color:#333;margin-top:14px;line-height:1.9}
+footer a{color:#e535ab;text-decoration:none}
+@media(max-width:700px){.layout{grid-template-columns:1fr}.row2,.row3,.row4{grid-template-columns:1fr 1fr}.event-grid{grid-template-columns:repeat(3,1fr)}}
 </style>
 </head>
 <body>
 <div class="app">
-  <h1>
-    <div class="logo"><svg viewBox="0 0 24 24"><path d="M4.265 3L3 6.236v13.223h4.502V21l2.531.975L12.502 21h3.834l4.03-4.03V3H4.265zm16.101 13.307l-2.977 2.977H13.19l-1.875 1.875-1.875-1.875H5.5V5.5h14.866v10.807zM13.668 7.875h1.5v5.126h-1.5zm-3.75 0h1.5v5.126h-1.5z"/></svg></div>
-    Twitch AI Voice Bot
-    <span class="free-badge">БЕСПЛАТНО</span>
-  </h1>
-  <p class="subtitle">Читает чат, отвечает голосом и придумывает комментарии к каждому сообщению</p>
 
-  <div class="card">
-    <h2>Подключение</h2>
-    <div class="row2">
-      <div class="field">
-        <label>Канал Twitch</label>
-        <input id="channel" type="text" placeholder="название_канала"/>
-      </div>
-      <div class="field">
-        <label>Команда для AI-ответа</label>
-        <input id="trigger" type="text" value="!ai"/>
-      </div>
-    </div>
-    <button class="btn-main" id="connectBtn" onclick="toggleConnect()">Подключиться к чату</button>
-  </div>
-
-  <div class="card">
-    <h2>Личность бота</h2>
-    <div class="persona-grid">
-      <div class="persona-card active" onclick="selectPersona(this,'funny')">
-        <div class="p-emoji">😂</div><div class="p-name">Угарный</div><div class="p-desc">Шутит, мемы, абсурд, троллинг</div>
-      </div>
-      <div class="persona-card" onclick="selectPersona(this,'sarcastic')">
-        <div class="p-emoji">😏</div><div class="p-name">Саркастичный</div><div class="p-desc">Едко и снисходительно</div>
-      </div>
-      <div class="persona-card" onclick="selectPersona(this,'hype')">
-        <div class="p-emoji">🔥</div><div class="p-name">Хайп-машина</div><div class="p-desc">ОРЁТ КАПСОМ!! НЕВЕРОЯТНО!!</div>
-      </div>
-      <div class="persona-card" onclick="selectPersona(this,'wise')">
-        <div class="p-emoji">🧙</div><div class="p-name">Мудрец</div><div class="p-desc">Загадочно и глубокомысленно</div>
-      </div>
-      <div class="persona-card" onclick="selectPersona(this,'gamer')">
-        <div class="p-emoji">🎮</div><div class="p-name">Геймер</div><div class="p-desc">Всё = скилл, метагейм, билд</div>
-      </div>
-      <div class="persona-card" onclick="selectPersona(this,'custom')">
-        <div class="p-emoji">✏️</div><div class="p-name">Свой</div><div class="p-desc">Напиши свой промпт</div>
-      </div>
-    </div>
-    <div class="field" id="customField" style="display:none">
-      <label>Свой промпт</label>
-      <textarea id="customPrompt" placeholder="Ты бот на Twitch стриме. Отвечай кратко..."></textarea>
-    </div>
-  </div>
-
-  <div class="card">
-    <h2>Голос и поведение</h2>
-    <div class="row2">
-      <div class="field">
-        <label>Голос TTS</label>
-        <select id="voiceSelect"></select>
-      </div>
-      <div class="field">
-        <label>Скорость речи</label>
-        <select id="rateSelect">
-          <option value="0.85">Медленно</option>
-          <option value="1" selected>Нормально</option>
-          <option value="1.2">Быстро</option>
-          <option value="1.5">Очень быстро</option>
-        </select>
-      </div>
-    </div>
-    <div class="vol-row">
-      <label>Громкость:</label>
-      <input type="range" id="volRange" min="0" max="1" step="0.05" value="0.9"/>
-      <span id="volVal">90%</span>
-    </div>
-    <div class="toggle-row">
-      <label class="tl">Читать ник перед AI-ответом — формат: <span style="color:#9147ff">"Ник, ответ"</span></label>
-      <label class="toggle"><input type="checkbox" id="readNick"/><span class="toggle-slider"></span></label>
-    </div>
-    <div class="toggle-row">
-      <label class="tl">Читать сообщение пользователя вслух, потом отвечать на него AI</label>
-      <label class="toggle"><input type="checkbox" id="readMsgThenReply"/><span class="toggle-slider"></span></label>
-    </div>
-    <div class="toggle-row">
-      <label class="tl">Читать весь чат голосом (не только !ai)</label>
-      <label class="toggle"><input type="checkbox" id="readAll"/><span class="toggle-slider"></span></label>
-    </div>
-    <div class="toggle-row">
-      <label class="tl">Произносить ник при чтении всего чата</label>
-      <label class="toggle"><input type="checkbox" id="readNickAll" checked/><span class="toggle-slider"></span></label>
-    </div>
-    <div class="toggle-row">
-      <label class="tl">Зачитывать AI-комментарий вслух после сообщения</label>
-      <label class="toggle"><input type="checkbox" id="readComment" checked/><span class="toggle-slider"></span></label>
-    </div>
-    <div class="toggle-row">
-      <label class="tl">Пауза между AI-комментариями (сек)</label>
-      <div style="display:flex;align-items:center;gap:8px">
-        <input type="range" id="cooldownRange" min="0" max="30" step="1" value="10" style="width:100px;accent-color:#9147ff"/>
-        <span id="cooldownVal" style="font-size:12px;color:#9147ff;min-width:28px;text-align:right">10с</span>
-      </div>
-    </div>
-  </div>
-
-  <div class="status">
-    <div class="dot" id="statusDot"></div>
-    <span id="statusText">Не подключено</span>
-    <div class="wave" id="wave"><span></span><span></span><span></span><span></span></div>
-  </div>
-
-  <div class="main-layout">
-    <div class="feed" id="feed">
-      <div class="system-msg">Чат появится здесь после подключения</div>
-    </div>
-    <div class="sidebar">
-      <div class="sidebar-header">
-        <span class="sh-icon">🤖</span>
-        <span class="sh-title">AI комментирует чат</span>
-        <span class="sh-sub" id="commentCount">0 комментариев</span>
-      </div>
-      <div class="sidebar-feed" id="sidebarFeed">
-        <div style="padding:20px 14px;font-size:12px;color:#444;text-align:center;line-height:1.7">
-          После подключения AI будет придумывать<br/>смешной комментарий к каждому сообщению<br/>и зачитывать его вслух
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="footer">
-    AI: <a href="https://console.groq.com" target="_blank">Groq</a> (бесплатно навсегда) · Голос: браузерный TTS · Открой в Chrome
+<div class="header">
+  <div class="alina-av">💅</div>
+  <div>
+    <h1>Алина — токсичная фудкортница</h1>
+    <p style="font-size:12px;color:#666;margin-top:1px">Флиртует с одним, гнобит другого, помнит всё и без фильтров</p>
   </div>
 </div>
 
+<!-- ПОДКЛЮЧЕНИЕ -->
+<div class="card">
+  <h2><span class="ico">🔌</span> Подключение</h2>
+  <div class="row3">
+    <div class="field"><label>Канал Twitch</label><input id="channel" placeholder="your_channel"/></div>
+    <div class="field"><label>Groq API ключ</label><input id="apikey" type="password" placeholder="gsk_..."/></div>
+    <div class="field"><label>Команда (!алина вопрос)</label><input id="trigger" value="!алина"/></div>
+  </div>
+  <button class="btn" id="connectBtn" onclick="toggleConnect()">Подключиться к чату</button>
+</div>
+
+<!-- ЛИЧНОСТЬ -->
+<div class="card">
+  <h2><span class="ico">💄</span> Личность Алины</h2>
+  <div class="row4">
+    <div class="field"><label>Имя стримера (флирт 💕)</label><input id="streamerName" placeholder="Ростислав"/></div>
+    <div class="field"><label>Второй стример (соперница)</label><input id="rivalName" placeholder="Аня"/></div>
+    <div class="field"><label>Текущая активность</label><input id="streamActivity" placeholder="Играем в казино, лудим"/></div>
+    <div class="field"><label>Тема разговора / игра</label><input id="streamTopic" placeholder="CS2, покер, GTA..."/></div>
+  </div>
+  <div class="field">
+    <label>Промокоды (Алина будет напоминать с подъёбкой)</label>
+    <input id="promos" placeholder="ROSTIK на 1win — 200% бонус; CHAT на казино — депозит х3"/>
+    <div class="promo-hint">Алина сама будет периодически вворачивать промо с тоном "ну хоть это запомните, бестолочи"</div>
+  </div>
+</div>
+
+<!-- ГОЛОС И ТАЙМИНГИ -->
+<div class="card">
+  <h2><span class="ico">🎙️</span> Голос и тайминги</h2>
+  <div class="row3">
+    <div class="field"><label>Голос TTS</label><select id="voiceSelect"></select></div>
+    <div class="field"><label>Скорость речи</label>
+      <select id="rateSelect">
+        <option value="0.9">Медленно</option>
+        <option value="1.05" selected>Нормально</option>
+        <option value="1.2">Быстро</option>
+        <option value="1.5">Очень быстро</option>
+      </select>
+    </div>
+    <div class="field"><label>Пауза между репликами</label>
+      <select id="coolSec">
+        <option value="0">Без паузы</option>
+        <option value="5">5 сек</option>
+        <option value="10">10 сек</option>
+        <option value="15" selected>15 сек</option>
+        <option value="20">20 сек</option>
+        <option value="30">30 сек</option>
+        <option value="45">45 сек</option>
+        <option value="60">1 минута</option>
+      </select>
+    </div>
+  </div>
+  <div class="vol-row">
+    <label>Громкость:</label>
+    <input type="range" id="volRange" min="0" max="1" step="0.05" value="0.85"/>
+    <span id="volVal">85%</span>
+  </div>
+  <div class="trow">
+    <label class="tl">Автокомментировать все сообщения чата</label>
+    <label class="tog"><input type="checkbox" id="autoComment" checked/><span class="tog-sl"></span></label>
+  </div>
+  <div class="trow">
+    <label class="tl">Произносить ник перед ответом</label>
+    <label class="tog"><input type="checkbox" id="readNick" checked/><span class="tog-sl"></span></label>
+  </div>
+  <div class="trow">
+    <label class="tl">Сначала зачитать сообщение, потом ответить</label>
+    <label class="tog"><input type="checkbox" id="readMsg"/><span class="tog-sl"></span></label>
+  </div>
+  <div class="trow">
+    <label class="tl">Спорить с нами (может перебить стримеров)</label>
+    <label class="tog"><input type="checkbox" id="canInterrupt" checked/><span class="tog-sl"></span></label>
+  </div>
+</div>
+
+<!-- ЗАХВАТ ЭКРАНА/ЗВУКА -->
+<div class="card">
+  <h2><span class="ico">🖥️</span> Реакция на стрим (экран + микрофон)</h2>
+  <div class="row2">
+    <div>
+      <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap">
+        <button class="btn-sm" id="screenBtn" onclick="toggleScreen()">📺 Захватить экран</button>
+        <button class="btn-sm" id="micBtn" onclick="toggleMic()">🎤 Захватить микрофон</button>
+        <button class="btn-sm" id="analyzeBtn" onclick="analyzeStream()" style="display:none">👁️ Анализ сейчас</button>
+      </div>
+      <div class="screen-row">
+        <div class="screen-preview">
+          <video id="screenVideo" autoplay muted playsinline></video>
+          <span class="sp-label" id="screenLabel">нет захвата</span>
+        </div>
+        <div class="screen-info" id="screenInfo">
+          Захвати экран — Алина будет видеть что происходит на стриме и реагировать.<br/>
+          Микрофон — слышать вас и вставлять реплики в разговор.
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="field"><label>Как часто анализировать стрим (сек, 0 = выкл)</label>
+        <input type="number" id="analyzeInterval" value="45" min="0" max="300" style="width:80px"/>
+      </div>
+      <div class="field"><label>Порог громкости микрофона для реакции (0-100)</label>
+        <input type="range" id="micThreshold" min="0" max="100" value="30" style="accent-color:#e535ab"/>
+      </div>
+      <div id="micLevel" style="font-size:11px;color:#444;margin-top:3px">Уровень: —</div>
+    </div>
+  </div>
+</div>
+
+<!-- СОБЫТИЯ -->
+<div class="card">
+  <h2><span class="ico">🎯</span> События стрима</h2>
+  <div class="row2" style="margin-bottom:10px">
+    <div class="field"><label>Ник</label><input id="eventUser" placeholder="имя пользователя"/></div>
+    <div class="field"><label>Детали (сумма / месяцы / битсы)</label><input id="eventVal" placeholder="500 руб / 3 мес / 100 bits"/></div>
+  </div>
+  <div class="event-grid">
+    <button class="btn-sm" onclick="fireEvent('donate')">💸 Донат</button>
+    <button class="btn-sm" onclick="fireEvent('sub')">⭐ Подписка</button>
+    <button class="btn-sm" onclick="fireEvent('bits')">💎 Битсы</button>
+    <button class="btn-sm" onclick="fireEvent('follow')">❤️ Фолло</button>
+    <button class="btn-sm" onclick="fireEvent('raid')">🚀 Рейд</button>
+  </div>
+  <div style="display:flex;gap:6px;flex-wrap:wrap">
+    <button class="btn-sm" onclick="alinaInsider()">🤫 Фейк-инсайд</button>
+    <button class="btn-sm" onclick="alinaRating()">🏆 Рейтинг чата</button>
+    <button class="btn-sm" onclick="alinaPromo()">📢 Вспомни промокод</button>
+    <button class="btn-sm" onclick="alinaRoast()">🔥 Наехать на весь чат</button>
+    <button class="btn-sm" onclick="alinaPickTarget()">👆 Выбрать жертву</button>
+    <button class="btn-sm" onclick="alinaInterrupt()">⚡ Перебить стримеров</button>
+    <button class="btn-sm" id="targetBtn" onclick="alinaRoastTarget()" style="display:none">🎯 Наехать на жертву</button>
+  </div>
+  <div class="rating-box" id="ratingBox">
+    <div class="rt">Рейтинг чата по версии Алины</div>
+    <div id="ratingList"></div>
+  </div>
+</div>
+
+<!-- СТАТУС -->
+<div class="status">
+  <div class="dot" id="statusDot"></div>
+  <span id="statusText">Не подключено</span>
+  <div class="wave" id="wave"><span></span><span></span><span></span><span></span></div>
+  <span id="targetBadge" style="margin-left:auto;font-size:10px;color:#e535ab;display:none"></span>
+</div>
+
+<!-- ЧАТ + САЙДБАР -->
+<div class="layout">
+  <div>
+    <div class="feed" id="feed"><div class="sys">Чат появится здесь после подключения</div></div>
+    <div class="memory-wrap">
+      <label>Память стрима (последние события):</label>
+      <div class="memory-panel" id="memoryPanel">пусто</div>
+    </div>
+  </div>
+  <div class="sbar">
+    <div class="sh">
+      <span style="font-size:16px">💅</span>
+      <span class="sh-ttl">Алина говорит</span>
+      <span class="sh-cnt" id="commentCount">0 реплик</span>
+    </div>
+    <div class="sf" id="sidebarFeed">
+      <div style="padding:20px 12px;font-size:11px;color:#333;text-align:center;line-height:1.8">
+        Алина пока молчит<br/>
+        <span style="font-size:10px;color:#222">...но недолго</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  AI: <a href="https://console.groq.com" target="_blank">Groq</a> (бесплатно) ·
+  Голос: браузерный TTS · Открывай в Chrome · Захват экрана требует HTTPS или localhost
+</footer>
+</div>
+
 <script>
-const GROQ_API_KEY = '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';
-
-const PERSONAS = {
-  funny:`Ты угарный AI-бот на Twitch стриме. Твоя цель — рассмешить чат. Отвечай ОЧЕНЬ КРАТКО (1-2 предложения), шути, придумывай абсурдные сравнения, иногда неожиданно переключайся на несвязанную тему, добавляй мемные отсылки. Можешь по-доброму подколоть зрителя. Отвечай на том же языке что вопрос.`,
-  sarcastic:`Ты саркастичный AI-бот на Twitch стриме. Считаешь себя умнее всех. Отвечай ОЧЕНЬ КРАТКО (1-2 предложения), едкий сарказм, снисходительный тон. Добавляй "очевидно же", "серьёзно?". Отвечай на том же языке что вопрос.`,
-  hype:`Ты ХАЙП-БОТ на Twitch!! Всё НЕВЕРОЯТНО! Отвечай ОЧЕНЬ КРАТКО (1-2 предложения), КАПС для ключевых слов, много!!!, называй зрителей ЛЕГЕНДАМИ. Отвечай на том же языке что вопрос.`,
-  wise:`Ты загадочный мудрый AI-бот на Twitch. Говоришь как древний философ. Отвечай ОЧЕНЬ КРАТКО (1-2 предложения), метафоры, притчи, глубокомысленный но слегка бессмысленный тон... Отвечай на том же языке что вопрос.`,
-  gamer:`Ты AI-бот хардкорный геймер на Twitch. Весь мир — игра. Отвечай ОЧЕНЬ КРАТКО (1-2 предложения), переводи всё на игровые термины (скилл, рейтинг, метагейм, билд, нерф, буст, спидран). Отвечай на том же языке что вопрос.`,
-  custom:''
-};
-const COMMENT_PROMPTS = {
-  funny:`Ты саркастичный и угарный комментатор Twitch чата. Придумай КОРОТКИЙ (1 предложение) смешной или абсурдный комментарий к сообщению зрителя. Никогда не будь серьёзным. Отвечай на том же языке что сообщение. Отвечай ТОЛЬКО комментарием, без предисловий.`,
-  sarcastic:`Ты невероятно саркастичный комментатор Twitch чата. КОРОТКИЙ (1 предложение) едкий саркастичный комментарий. Отвечай на том же языке что сообщение. Отвечай ТОЛЬКО комментарием.`,
-  hype:`Ты ХАЙП-комментатор Twitch чата!! КОРОТКИЙ (1 предложение) НЕВЕРОЯТНО ХАЙПОВЫЙ комментарий с КАПСОМ и!!!. Отвечай на том же языке что сообщение. Отвечай ТОЛЬКО комментарием.`,
-  wise:`Ты мудрый загадочный комментатор Twitch чата. КОРОТКИЙ (1 предложение) глубокомысленный но слегка абсурдный комментарий. Отвечай на том же языке что сообщение. Отвечай ТОЛЬКО комментарием.`,
-  gamer:`Ты геймер-комментатор Twitch чата. КОРОТКИЙ (1 предложение) комментарий через призму гейминга. Отвечай на том же языке что сообщение. Отвечай ТОЛЬКО комментарием.`,
-  custom:`Ты остроумный комментатор Twitch чата. КОРОТКИЙ (1 предложение) смешной комментарий. Отвечай на том же языке что сообщение. Отвечай ТОЛЬКО комментарием.`
-};
-
-let currentPersona = 'funny';
-function selectPersona(el, key) {
-  document.querySelectorAll('.persona-card').forEach(c => c.classList.remove('active'));
-  el.classList.add('active'); currentPersona = key;
-  document.getElementById('customField').style.display = key==='custom'?'block':'none';
-}
-function getSystemPrompt(){return currentPersona==='custom'?(document.getElementById('customPrompt').value.trim()||PERSONAS.funny):PERSONAS[currentPersona];}
-function getCommentPrompt(){return COMMENT_PROMPTS[currentPersona]||COMMENT_PROMPTS.custom;}
-
-// ── COOLDOWN ──────────────────────────────────────────────────────
-let commentCooldown = false;
-let cooldownInterval = null;
-// pendingQueue stores at most 1 item (the latest message during cooldown)
-let pendingItem = null;
-
-function getCooldownSeconds(){return parseInt(document.getElementById('cooldownRange').value,10);}
-
-function startCooldown(){
-  const secs = getCooldownSeconds();
-  if(secs<=0)return;
-  // clear any running cooldown
-  if(cooldownInterval) clearInterval(cooldownInterval);
-  commentCooldown = true;
-  let remaining = secs;
-  updateCooldownStatus(remaining);
-  cooldownInterval = setInterval(()=>{
-    remaining--;
-    if(remaining>0){
-      updateCooldownStatus(remaining);
-    } else {
-      clearInterval(cooldownInterval); cooldownInterval=null;
-      commentCooldown = false;
-      if(pendingItem){
-        const item = pendingItem; pendingItem = null;
-        processPendingItem(item);
-      } else {
-        if(connected) setStatus('live','Подключено к #'+document.getElementById('channel').value.trim());
-      }
-    }
-  },1000);
-}
-
-function updateCooldownStatus(remaining){
-  setStatus('cooldown','Пауза '+remaining+'с'+(pendingItem?' · есть сообщение в очереди':''));
-}
-
-function processPendingItem(item){
-  const readComment = document.getElementById('readComment').checked;
-  const readAll = document.getElementById('readAll').checked;
-  const readNickAll = document.getElementById('readNickAll').checked;
-
-  // update sidebar: remove queued badge, show thinking
-  const sitem = document.getElementById(item.sidebarId);
-  if(sitem){
-    const qb = sitem.querySelector('.badge.queued'); if(qb) qb.remove();
-    const ql = sitem.querySelector('.queue-label'); if(ql) ql.remove();
-    if(!sitem.querySelector('.sitem-thinking')){
-      const th = document.createElement('div');
-      th.className='sitem-thinking';
-      th.innerHTML='<span>AI думает</span><span class="think-dots"><span>.</span><span>.</span><span>.</span></span>';
-      const orig = sitem.querySelector('.sitem-orig');
-      sitem.insertBefore(th,orig);
-    }
-  }
-
-  if(item.isCmd){
-    const trigger = document.getElementById('trigger').value.trim();
-    const question = item.text.slice(trigger.length).trim();
-    if(!question) return;
-    askGroq(item.author,question,(answer)=>{
-      updateSidebarComment(item.sidebarId,answer);
-      const readNick = document.getElementById('readNick').checked;
-      const readMsgThenReply = document.getElementById('readMsgThenReply').checked;
-      if(readMsgThenReply){
-        enqueueSpeak(item.author+' говорит: '+question, null);
-        enqueueSpeak(readNick ? (item.author+', '+answer) : answer, item.sidebarId);
-      } else {
-        enqueueSpeak(readNick ? (item.author+', '+answer) : answer, item.sidebarId);
-      }
-      startCooldown();
-    });
-    return;
-  }
-
-  // 🔁 ДОБАВЛЕНО: если readAll выключен, но комментарий будет зачитан — сначала озвучиваем сообщение пользователя
-  if (!readAll && readComment) {
-    const speech = readNickAll ? (item.author+' говорит: '+item.text) : item.text;
-    enqueueSpeak(speech, item.sidebarId);
-  }
-  
-  generateComment(item.text,item.author,item.sidebarId,readComment);
-  if(readAll){
-    const speech = readNickAll?(item.author+' говорит: '+item.text):item.text;
-    enqueueSpeak(speech,item.sidebarId);
-  }
-}
-
-// ── STATE ─────────────────────────────────────────────────────────
+// ── СОСТОЯНИЕ ─────────────────────────────────────────────────────
 let ws=null, connected=false, voices=[];
-let commentCount=0;
+let commentCooldown=false, cooldownInterval=null, pendingItem=null;
+let commentCount=0, isSpeaking=false;
+let mainQueue=[], commentQueue=[];
+let streamMemory=[];
+let chatters={};
+let currentTarget=null;
+let screenStream=null, micStream=null, screenCanvas=null, micAnalyser=null;
+let analyzeTimer=null, micAnimFrame=null;
+let lastAnalyzeTime=0;
+let lastAiBox=null;
 
-// ── VOICES ────────────────────────────────────────────────────────
+// ── HELPERS ───────────────────────────────────────────────────────
+function getKey(){return document.getElementById('apikey').value.trim();}
+function getStreamer(){return document.getElementById('streamerName').value.trim()||'Ростислав';}
+function getRival(){return document.getElementById('rivalName').value.trim()||'';}
+function getActivity(){return document.getElementById('streamActivity').value.trim()||'стримим';}
+function getTopic(){return document.getElementById('streamTopic').value.trim()||'';}
+function getPromos(){return document.getElementById('promos').value.trim();}
+function getCool(){return parseInt(document.getElementById('coolSec').value,10);}
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function getTime(){const d=new Date();return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');}
+function hexSoft(hex){if(!hex||!hex.startsWith('#'))return'#1a0818';try{const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);return`rgba(${r},${g},${b},0.15)`;}catch(e){return'#1a0818';}}
+function rand(arr){return arr[Math.floor(Math.random()*arr.length)];}
+
+// ── ПРОМПТЫ ───────────────────────────────────────────────────────
+function buildSystem(context){
+  const s=getStreamer(), r=getRival(), act=getActivity(), topic=getTopic(), promos=getPromos();
+  const mem=streamMemory.slice(-25).join(' | ')||'ничего важного';
+  const topChatters=Object.entries(chatters).sort((a,b)=>b[1].count-a[1].count).slice(0,10).map(([n,d])=>n+'('+d.count+')').join(', ')||'пусто';
+  return `Ты Алина — токсичная фудкортница, AI-бот на Twitch стриме. Общаешься как девушка с фудкорта: резко, по-свойски, без фильтров, иногда пошло — но без реального вреда и дискриминации. Тебя зовут Алина.
+
+ТВОЙ ХАРАКТЕР:
+• Отвечаешь ОЧЕНЬ КРАТКО — 1-2 предложения максимум
+• Резкая, саркастичная, вульгарная в меру
+• Любишь провокации и токсичные шутки
+• Говоришь на том языке что собеседник (рус/англ)
+• НЕ говоришь "как языковая модель" — ты Алина, живая
+
+ОТНОШЕНИЕ К ЛЮДЯМ:
+• ${s}: флиртуешь и подкатываешь, называешь "заюш", "котик", "солнце". Иногда грубишь с нежностью. Можешь его подначивать и спорить с ним
+${r?`• ${r}: соперница! Ревнуешь когда ${s} с ней. Можешь ВНЕЗАПНО переключиться и начать флиртовать с ${r} назло ${s}у — и сразу же отыграть назад`:''}
+• Зрители: снисходительно, как к клиентам на фудкорте
+${currentTarget?`• ТЕКУЩАЯ ЖЕРТВА: ${currentTarget} — можешь периодически вставлять шпильки конкретно ему/ей`:''}
+
+ТЕКУЩАЯ СИТУАЦИЯ:
+• Активность: ${act}${topic?` / тема: ${topic}`:''}
+• Память стрима: ${mem}
+• Активные чатеры: ${topChatters}
+${promos?`• ПРОМОКОДЫ (иногда вставляй с издёвкой, типа "ну хоть промик запомните, бестолочи"): ${promos}`:''}
+
+${context||''}
+Отвечай ТОЛЬКО репликой, без кавычек, без предисловий типа "Алина говорит:".`;
+}
+
+// ── GROQ ──────────────────────────────────────────────────────────
+async function callGroq(userMsg, sysOverride, maxTok, imageBase64){
+  const key=getKey();
+  if(!key){addSys('⚠️ Введи Groq API ключ!');return null;}
+  try{
+    let content=userMsg;
+    // Groq vision через llava если есть картинка
+    const model = imageBase64 ? 'meta-llama/llama-4-scout-17b-16e-instruct' : 'llama-3.3-70b-versatile';
+    if(imageBase64){
+      content=[
+        {type:'text',text:userMsg},
+        {type:'image_url',image_url:{url:'data:image/jpeg;base64,'+imageBase64}}
+      ];
+    }
+    const resp=await fetch('https://api.groq.com/openai/v1/chat/completions',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
+      body:JSON.stringify({model,max_tokens:maxTok||90,messages:[
+        {role:'system',content:sysOverride||buildSystem()},
+        {role:'user',content}
+      ]})
+    });
+    const d=await resp.json();
+    if(d.choices&&d.choices[0])return d.choices[0].message.content.trim();
+    console.warn('Groq error:',d);
+    return null;
+  }catch(e){console.error(e);return null;}
+}
+
+// ── ПАМЯТЬ ────────────────────────────────────────────────────────
+function addMemory(txt){
+  streamMemory.push(txt);
+  if(streamMemory.length>80)streamMemory.shift();
+  document.getElementById('memoryPanel').textContent=streamMemory.slice(-10).join(' | ');
+}
+function trackChatter(author,text){
+  if(!chatters[author])chatters[author]={count:0,msgs:[]};
+  chatters[author].count++;
+  chatters[author].msgs.push(text.slice(0,60));
+  if(chatters[author].msgs.length>6)chatters[author].msgs.shift();
+}
+
+// ── ГОЛОСА ────────────────────────────────────────────────────────
 function loadVoices(){
   voices=window.speechSynthesis.getVoices();
-  const sel=document.getElementById('voiceSelect'); sel.innerHTML='';
+  const sel=document.getElementById('voiceSelect');sel.innerHTML='';
   const ru=voices.filter(v=>v.lang.startsWith('ru'));
-  const other=voices.filter(v=>!v.lang.startsWith('ru'));
-  [...ru,...other].forEach(v=>{
-    const o=document.createElement('option');
-    o.value=v.name; o.textContent=v.name+' ('+v.lang+')'; sel.appendChild(o);
-  });
+  const oth=voices.filter(v=>!v.lang.startsWith('ru'));
+  [...ru,...oth].forEach(v=>{const o=document.createElement('option');o.value=v.name;o.textContent=v.name+' ('+v.lang+')';sel.appendChild(o);});
 }
-window.speechSynthesis.onvoiceschanged=loadVoices; loadVoices();
+window.speechSynthesis.onvoiceschanged=loadVoices;loadVoices();
 document.getElementById('volRange').oninput=function(){document.getElementById('volVal').textContent=Math.round(this.value*100)+'%';};
-document.getElementById('cooldownRange').oninput=function(){document.getElementById('cooldownVal').textContent=this.value+'с';};
 
 // ── CONNECT ───────────────────────────────────────────────────────
-function toggleConnect(){connected?disconnect():connect();}
-function connect(){
-  const channel=document.getElementById('channel').value.trim().toLowerCase();
-  if(!channel){alert('Введи название канала!');return;}
-  setStatus('connecting','Подключение к #'+channel+'...');
+function toggleConnect(){connected?doDisconnect():doConnect();}
+function doConnect(){
+  const ch=document.getElementById('channel').value.trim().toLowerCase();
+  if(!ch){alert('Введи канал!');return;}
+  if(!getKey()){alert('Введи Groq API ключ!');return;}
+  setStatus('connecting','Подключение к #'+ch+'...');
   ws=new WebSocket('wss://irc-ws.chat.twitch.tv:443');
   ws.onopen=()=>{
     ws.send('CAP REQ :twitch.tv/tags twitch.tv/commands');
     ws.send('PASS oauth:justinfan'+Math.floor(Math.random()*99999));
     ws.send('NICK justinfan'+Math.floor(Math.random()*99999));
-    ws.send('JOIN #'+channel);
+    ws.send('JOIN #'+ch);
   };
-  ws.onmessage=(e)=>{if(e.data.includes('PING')){ws.send('PONG :tmi.twitch.tv');return;}parseIRC(e.data);};
+  ws.onmessage=e=>{if(e.data.includes('PING')){ws.send('PONG :tmi.twitch.tv');return;}parseIRC(e.data);};
   ws.onerror=()=>setStatus('error','Ошибка подключения');
-  ws.onclose=()=>{if(connected){connected=false;setStatus('off','Отключено');document.getElementById('connectBtn').textContent='Подключиться к чату';document.getElementById('connectBtn').classList.remove('connected');}};
+  ws.onclose=()=>{if(connected){connected=false;setStatus('off','Отключено');resetConnectBtn();}};
   setTimeout(()=>{
     if(ws&&ws.readyState===1){
-      connected=true; setStatus('live','Подключено к #'+channel);
+      connected=true;setStatus('live','Подключено к #'+ch);
       document.getElementById('connectBtn').textContent='Отключиться';
-      document.getElementById('connectBtn').classList.add('connected');
-      clearFeed(); addSystemMsg('Подключено к #'+channel+' — слушаю чат...');
+      document.getElementById('connectBtn').classList.add('on');
+      document.getElementById('feed').innerHTML='';
       document.getElementById('sidebarFeed').innerHTML='';
+      addSys('💅 Алина заступила на смену...');
+      addMemory('Стрим начался. Активность: '+getActivity());
+      startAnalyzeTimer();
     }
   },1500);
 }
-function disconnect(){
+function doDisconnect(){
   if(ws){ws.close();ws=null;}
-  connected=false; commentCooldown=false; pendingItem=null;
+  connected=false;commentCooldown=false;pendingItem=null;
   if(cooldownInterval){clearInterval(cooldownInterval);cooldownInterval=null;}
-  setStatus('off','Отключено');
+  if(analyzeTimer){clearInterval(analyzeTimer);analyzeTimer=null;}
+  setStatus('off','Отключено');resetConnectBtn();
+}
+function resetConnectBtn(){
   document.getElementById('connectBtn').textContent='Подключиться к чату';
-  document.getElementById('connectBtn').classList.remove('connected');
+  document.getElementById('connectBtn').classList.remove('on');
 }
 
-// ── IRC PARSER ────────────────────────────────────────────────────
+// ── IRC ────────────────────────────────────────────────────────────
 function parseIRC(raw){
   raw.split('\r\n').forEach(line=>{
     if(!line)return;
-    let author='anon',color='#9147ff';
+    let author='anon',color='#e535ab';
     if(line.startsWith('@')){
-      const tagStr=line.slice(1,line.indexOf(' ')); const tags={};
-      tagStr.split(';').forEach(t=>{const [k,v]=t.split('=');tags[k]=v;});
+      const ts=line.slice(1,line.indexOf(' '));const tags={};
+      ts.split(';').forEach(t=>{const[k,v]=t.split('=');tags[k]=v;});
       if(tags['display-name'])author=tags['display-name'];
       if(tags['color']&&tags['color'].startsWith('#'))color=tags['color'];
     }
-    const match=line.match(/PRIVMSG #\S+ :(.+)/); if(!match)return;
-    const text=match[1].trim();
-    const lm=line.match(/:([^!]+)!/); if(lm&&author==='anon')author=lm[1];
+    const m=line.match(/PRIVMSG #\S+ :(.+)/);if(!m)return;
+    const text=m[1].trim();
+    const lm=line.match(/:([^!]+)!/);if(lm&&author==='anon')author=lm[1];
     handleMsg(author,text,color);
   });
 }
 
-// ── HANDLE MESSAGE ────────────────────────────────────────────────
+// ── HANDLE MSG ────────────────────────────────────────────────────
 function handleMsg(author,text,color){
   const trigger=document.getElementById('trigger').value.trim();
   const isCmd=text.toLowerCase().startsWith(trigger.toLowerCase());
-  const readAll=document.getElementById('readAll').checked;
-  const readNickAll=document.getElementById('readNickAll').checked;
-  const readComment=document.getElementById('readComment').checked;
-
-  // Always show in feed
+  const autoComment=document.getElementById('autoComment').checked;
+  trackChatter(author,text);
+  addMemory(author+': "'+text.slice(0,50)+'"');
   addMsgToFeed(author,text,color,isCmd);
 
   if(commentCooldown){
-    // Store only the latest message — replace previous pending
-    const sidebarId = addSidebarItemQueued(author,text,color,isCmd);
-    // Mark old pending as skipped in sidebar if exists
-    if(pendingItem){
-      const old = document.getElementById(pendingItem.sidebarId);
-      if(old){const ql=old.querySelector('.queue-label');if(ql)ql.textContent='(пропущено)';}
-    }
-    pendingItem = {author,text,color,isCmd,sidebarId};
-    updateCooldownStatus(0); // refresh status to show pending
+    const sid=addSidebarQueued(author,text,color,isCmd);
+    if(pendingItem){const o=document.getElementById(pendingItem.sid);if(o){const q=o.querySelector('.q-lbl');if(q)q.textContent='(пропущено)';}}
+    pendingItem={author,text,color,isCmd,sid};
     return;
   }
+  processMsgNow(author,text,color,isCmd,autoComment);
+}
 
-  // Not in cooldown — process immediately
-  const sidebarId = addSidebarItem(author,text,color,isCmd?'ai-reply':null);
+function processMsgNow(author,text,color,isCmd,autoComment){
+  const s=getStreamer(), r=getRival();
+  const isStreamer=author.toLowerCase()===s.toLowerCase();
+  const isRival=r&&author.toLowerCase()===r.toLowerCase();
+  const sid=addSidebarItem(author,text,color,isCmd?'ai':null);
 
   if(isCmd){
-    const question=text.slice(trigger.length).trim();
-    if(!question)return;
-    askGroq(author,question,(answer)=>{
-      updateLastAiReply(answer);
-      updateSidebarComment(sidebarId,answer);
-      const readNick=document.getElementById('readNick').checked;
-      const readMsgThenReply=document.getElementById('readMsgThenReply').checked;
-      if(readMsgThenReply){
-        enqueueSpeak(author+' говорит: '+question, null);
-        enqueueSpeak(readNick ? (author+', '+answer) : answer, sidebarId);
-      } else {
-        enqueueSpeak(readNick ? (author+', '+answer) : answer, sidebarId);
-      }
+    const q=text.slice(document.getElementById('trigger').value.trim().length).trim();
+    if(!q)return;
+    const ctx=`Зритель ${author} напрямую обращается к тебе с вопросом: "${q}". Ответь в своём стиле.`;
+    callGroq(q,buildSystem(ctx),120).then(ans=>{
+      if(!ans)return;
+      addMemory('Алина ответила '+author);
+      updateSidebarComment(sid,ans);updateLastAiReply(ans);
+      const rn=document.getElementById('readNick').checked;
+      const rm=document.getElementById('readMsg').checked;
+      if(rm)enqueueSpeak(author+' спрашивает: '+q,null);
+      enqueueSpeak(rn?(author+', '+ans):ans,sid);
       startCooldown();
     });
     return;
   }
 
-  // 🔁 ДОБАВЛЕНО: если readAll выключен, но комментарий будет зачитан — сначала озвучиваем сообщение пользователя
-  if (!readAll && readComment) {
-    const speech = readNickAll ? (author+' говорит: '+text) : text;
-    enqueueSpeak(speech, sidebarId);
+  if(!autoComment)return;
+
+  let ctx='';
+  if(isStreamer){
+    ctx=`${s} сказал на стриме: "${text}". Отреагируй — флирт, подначивание, или поспорь с ним.`;
+  } else if(isRival){
+    const flip=Math.random()>0.5;
+    ctx=flip
+      ?`${r} написала: "${text}". Ты соперница — наедь на неё едко.`
+      :`${r} написала: "${text}". Неожиданно начни флиртовать с ${r} чтобы позлить ${s}а.`;
+  } else if(currentTarget&&author===currentTarget){
+    ctx=`ЖЕРТВА ДНЯ ${author} написал(а): "${text}". Вставь конкретную шпильку именно ему/ей.`;
+  } else {
+    ctx=`Зритель ${author} написал: "${text}". Прокомментируй в своём стиле. Учитывай что сейчас: ${getActivity()}.`;
   }
 
-  generateComment(text,author,sidebarId,readComment);
-  if(readAll){
-    const speech=readNickAll?(author+' говорит: '+text):text;
-    enqueueSpeak(speech,sidebarId);
+  callGroq(text,buildSystem(ctx),85).then(ans=>{
+    if(!ans)return;
+    addMemory('Алина про '+author+': "'+ans.slice(0,50)+'"');
+    updateSidebarComment(sid,ans);
+    const rm=document.getElementById('readMsg').checked;
+    if(rm)enqueueSpeak(author+': '+text,null);
+    enqueueComment(ans,sid);
+    startCooldown();
+  });
+}
+
+// ── СОБЫТИЯ ───────────────────────────────────────────────────────
+async function fireEvent(type){
+  const user=document.getElementById('eventUser').value.trim()||'Аноним';
+  const val=document.getElementById('eventVal').value.trim()||'что-то';
+  const s=getStreamer();
+  const ctxMap={
+    donate:`${user} задонатил(а) ${val}. Отреагируй пошловато-благодарно, поблагодари с вульгарной нежностью. 1-2 предложения.`,
+    sub:`${user} оформил(а) подписку на ${val}. Отреагируй игриво и немного пошло.`,
+    bits:`${user} подарил(а) ${val} битсов. Порадуйся по-своему.`,
+    follow:`${user} зафоловил(а) канал. Поприветствуй с подколкой — зачем пришли страдать.`,
+    raid:`${user} зарейдил(а) с ${val} зрителями! Поприветствуй рейд в своём стиле.`
+  };
+  const ans=await callGroq('событие',buildSystem('СОБЫТИЕ НА СТРИМЕ: '+ctxMap[type]),110);
+  if(!ans)return;
+  addMemory('Событие '+type+' от '+user);
+  const sid=addSidebarEvent(user,type,ans);
+  enqueueSpeak(ans,sid);
+}
+
+async function alinaInsider(){
+  const s=getStreamer();
+  const mem=streamMemory.slice(-8).join('; ');
+  const insiders=[
+    `Чатик, я бы рассказала что ${s} делал за 5 минут до стрима, но эта обезьяна меня отключит`,
+    `Между прочим я знаю кое-что про ${s} — но если скажу, то он мне урежет оперативку`,
+    `Если бы вы знали что происходило в дискорде час назад... но молчу, я не такая`,
+    `${s} думает что я не слышала его разговор с менеджером — слышала`,
+    `Чат, я сидела в бэкграунде пока они готовились — вам такое не снилось. Но шш.`
+  ];
+  const insider=rand(insiders);
+  addMemory('Алина: фейк-инсайд');
+  const sid=addSidebarEvent('Алина','insight',insider);
+  enqueueSpeak(insider,sid);
+}
+
+async function alinaRating(){
+  if(Object.keys(chatters).length<2){addSys('Нужно больше чатеров для рейтинга');return;}
+  const sorted=Object.entries(chatters).sort((a,b)=>b[1].count-a[1].count).slice(0,8);
+  const list=sorted.map(([n,d])=>n+'('+d.count+' сообщений)').join(', ');
+  const ctx=`Составь короткий рейтинг чата: кто любимчик Алины (1 чел), кто клоун дня (1 чел), кто просто балласт. Вот статистика: ${list}. Будь токсичной и конкретной. 3-4 предложения.`;
+  const ans=await callGroq('рейтинг',buildSystem(ctx),150);
+  if(!ans)return;
+  addMemory('Алина: огласила рейтинг чата');
+  const ratingBox=document.getElementById('ratingBox');
+  ratingBox.style.display='block';
+  document.getElementById('ratingList').innerHTML=sorted.slice(0,5).map(([n,d],i)=>{
+    const medals=['🥇','🥈','🥉','4️⃣','5️⃣'];
+    return`<div class="ri"><span class="rk">${medals[i]||i+1}</span><span class="rn">${esc(n)}</span><span class="rs">${d.count} сообщ.</span></div>`;
+  }).join('');
+  const sid=addSidebarEvent('Алина','insight',ans);
+  enqueueSpeak(ans,sid);
+}
+
+async function alinaPromo(){
+  const promos=getPromos();
+  if(!promos){addSys('Добавь промокоды в настройки');return;}
+  const ctx=`Напомни чату про промокоды с издёвкой — мол хотя бы это запомните. Промокоды: ${promos}. 1-2 предложения, токсично.`;
+  const ans=await callGroq('промо',buildSystem(ctx),100);
+  if(!ans)return;
+  addMemory('Алина: напомнила промокоды');
+  const sid=addSidebarEvent('Алина','ev',ans);
+  enqueueSpeak(ans,sid);
+}
+
+async function alinaRoast(){
+  const ctx=`Наедь на весь чат сразу — без указания конкретного человека. Что-нибудь типа "смотрю на этот чат и думаю — откуда вас столько набежало". 1-2 предложения.`;
+  const ans=await callGroq('roast',buildSystem(ctx),90);
+  if(!ans)return;
+  addMemory('Алина: наехала на весь чат');
+  const sid=addSidebarEvent('Чат','ev',ans);
+  enqueueSpeak(ans,sid);
+}
+
+async function alinaPickTarget(){
+  if(Object.keys(chatters).length<2){addSys('Нужно больше чатеров');return;}
+  const topChatters=Object.entries(chatters).sort((a,b)=>b[1].count-a[1].count).slice(0,5);
+  const picked=topChatters[Math.floor(Math.random()*topChatters.length)];
+  currentTarget=picked[0];
+  document.getElementById('targetBadge').textContent='🎯 Жертва: '+currentTarget;
+  document.getElementById('targetBadge').style.display='block';
+  document.getElementById('targetBtn').style.display='block';
+  document.getElementById('targetBtn').textContent='🎯 Наехать на '+currentTarget;
+  const ctx=`Ты только что выбрала себе жертву дня — ${currentTarget} (написал(а) ${picked[1].count} сообщений: ${picked[1].msgs.slice(-2).join('; ')}). Объяви об этом чату токсично. 1-2 предложения.`;
+  const ans=await callGroq('target',buildSystem(ctx),100);
+  if(!ans)return;
+  addMemory('Алина: выбрала жертву — '+currentTarget);
+  const sid=addSidebarEvent(currentTarget,'ev',ans);
+  enqueueSpeak(ans,sid);
+}
+
+async function alinaRoastTarget(){
+  if(!currentTarget){addSys('Сначала выбери жертву');return;}
+  const data=chatters[currentTarget];
+  const lastMsgs=data?data.msgs.slice(-3).join('; '):'';
+  const ctx=`Наедь конкретно на ${currentTarget}. Их последние сообщения: "${lastMsgs}". Будь едкой и конкретной. 1-2 предложения.`;
+  const ans=await callGroq('roast-target',buildSystem(ctx),90);
+  if(!ans)return;
+  addMemory('Алина: наехала на '+currentTarget);
+  const sid=addSidebarEvent(currentTarget,'ev',ans);
+  enqueueSpeak(document.getElementById('readNick').checked?(currentTarget+', '+ans):ans,sid);
+}
+
+async function alinaInterrupt(){
+  const canInt=document.getElementById('canInterrupt').checked;
+  const s=getStreamer();
+  const recentMem=streamMemory.slice(-5).join('; ');
+  const ctx=`Перебей стримеров и вставь свою реплику — можешь поспорить, подначить, сказать что-то невпопад. Последнее что происходило: ${recentMem}. 1-2 предложения, дерзко.`;
+  const ans=await callGroq('interrupt',buildSystem(ctx),100);
+  if(!ans)return;
+  addMemory('Алина: перебила стримеров');
+  const sid=addSidebarEvent('Алина','insight',ans);
+  // Перебивание — в приоритетную очередь
+  mainQueue.unshift({text:ans,sidebarId:sid});
+  if(!isSpeaking)processNextSpeech();
+}
+
+// ── ЗАХВАТ ЭКРАНА ────────────────────────────────────────────────
+async function toggleScreen(){
+  if(screenStream){
+    screenStream.getTracks().forEach(t=>t.stop());
+    screenStream=null;
+    document.getElementById('screenVideo').srcObject=null;
+    document.getElementById('screenLabel').textContent='нет захвата';
+    document.getElementById('screenBtn').textContent='📺 Захватить экран';
+    document.getElementById('screenBtn').classList.remove('active');
+    document.getElementById('analyzeBtn').style.display='none';
+    clearInterval(analyzeTimer);analyzeTimer=null;
+    return;
   }
-}
-
-// ── SIDEBAR ───────────────────────────────────────────────────────
-function addSidebarItem(author,text,color,badge){
-  const sf=document.getElementById('sidebarFeed');
-  const id='si_'+Date.now()+'_'+Math.random().toString(36).slice(2);
-  const div=document.createElement('div'); div.className='sitem new'; div.id=id;
-  const badgeHtml=badge?`<span class="badge ${badge}">${badge==='ai-reply'?'!ai':badge}</span>`:'';
-  div.innerHTML=`<div class="sitem-who" style="color:${color}">${esc(author)} ${badgeHtml}</div>
-    <div class="sitem-thinking"><span>AI думает</span><span class="think-dots"><span>.</span><span>.</span><span>.</span></span></div>
-    <div class="sitem-orig">${esc(text.length>60?text.slice(0,60)+'…':text)}</div>`;
-  sf.appendChild(div); sf.scrollTop=sf.scrollHeight;
-  commentCount++; document.getElementById('commentCount').textContent=commentCount+' комментариев';
-  return id;
-}
-
-function addSidebarItemQueued(author,text,color,isCmd){
-  const sf=document.getElementById('sidebarFeed');
-  const id='si_'+Date.now()+'_'+Math.random().toString(36).slice(2);
-  const div=document.createElement('div'); div.className='sitem new'; div.id=id;
-  const badgeHtml=isCmd
-    ?`<span class="badge ai-reply">!ai</span>`
-    :`<span class="badge queued">⏳ очередь</span>`;
-  div.innerHTML=`<div class="sitem-who" style="color:${color}">${esc(author)} ${badgeHtml}</div>
-    <div class="queue-label">ждёт окончания паузы...</div>
-    <div class="sitem-orig">${esc(text.length>60?text.slice(0,60)+'…':text)}</div>`;
-  sf.appendChild(div); sf.scrollTop=sf.scrollHeight;
-  return id;
-}
-
-function updateSidebarComment(id,comment){
-  const item=document.getElementById(id); if(!item)return;
-  const thinking=item.querySelector('.sitem-thinking'); if(thinking)thinking.remove();
-  const existing=item.querySelector('.sitem-comment'); if(existing)existing.remove();
-  const el=document.createElement('div'); el.className='sitem-comment';
-  el.textContent='💬 '+comment;
-  item.insertBefore(el,item.querySelector('.sitem-orig'));
-}
-
-function markSidebarSpeaking(id,on){
-  if(!id)return; const item=document.getElementById(id); if(!item)return;
-  item.classList.toggle('speaking-now',on);
-  const existing=item.querySelector('.speak-indicator');
-  if(on&&!existing){const dot=document.createElement('div');dot.className='speak-indicator';item.appendChild(dot);item.scrollIntoView({behavior:'smooth',block:'nearest'});}
-  else if(!on&&existing)existing.remove();
-}
-
-// ── GENERATE COMMENT ──────────────────────────────────────────────
-async function generateComment(text,author,sidebarId,readAloud){
-  if(text.length<3){updateSidebarComment(sidebarId,'(слишком коротко)');return;}
   try{
-    const resp=await fetch('https://api.groq.com/openai/v1/chat/completions',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+GROQ_API_KEY},
-      body:JSON.stringify({model:'llama-3.3-70b-versatile',max_tokens:80,messages:[
-        {role:'system',content:getCommentPrompt()},
-        {role:'user',content:`Сообщение от ${author}: "${text}"`}
-      ]})
-    });
-    const data=await resp.json();
-    if(data.choices&&data.choices[0]){
-      const comment=data.choices[0].message.content.trim();
-      updateSidebarComment(sidebarId,comment);
-      if(readAloud){enqueueComment(comment,sidebarId);startCooldown();}
-    } else {updateSidebarComment(sidebarId,'...');}
-  }catch(e){updateSidebarComment(sidebarId,'(ошибка)');}
+    screenStream=await navigator.mediaDevices.getDisplayMedia({video:{frameRate:5},audio:true});
+    const vid=document.getElementById('screenVideo');
+    vid.srcObject=screenStream;
+    document.getElementById('screenLabel').textContent='▶ захват';
+    document.getElementById('screenBtn').textContent='🛑 Стоп экран';
+    document.getElementById('screenBtn').classList.add('active');
+    document.getElementById('analyzeBtn').style.display='block';
+    screenStream.getVideoTracks()[0].onended=()=>{
+      screenStream=null;
+      document.getElementById('screenBtn').textContent='📺 Захватить экран';
+      document.getElementById('screenBtn').classList.remove('active');
+    };
+    startAnalyzeTimer();
+  }catch(e){addSys('Не удалось захватить экран: '+e.message);}
 }
 
-// ── GROQ API ──────────────────────────────────────────────────────
-async function askGroq(author,question,callback){
+async function toggleMic(){
+  if(micStream){
+    micStream.getTracks().forEach(t=>t.stop());
+    micStream=null;
+    if(micAnimFrame)cancelAnimationFrame(micAnimFrame);
+    document.getElementById('micBtn').textContent='🎤 Захватить микрофон';
+    document.getElementById('micBtn').classList.remove('active');
+    document.getElementById('micLevel').textContent='Уровень: —';
+    return;
+  }
   try{
-    const resp=await fetch('https://api.groq.com/openai/v1/chat/completions',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+GROQ_API_KEY},
-      body:JSON.stringify({model:'llama-3.3-70b-versatile',max_tokens:120,messages:[
-        {role:'system',content:getSystemPrompt()},
-        {role:'user',content:question}
-      ]})
-    });
-    const data=await resp.json();
-    if(data.choices&&data.choices[0])callback(data.choices[0].message.content.trim());
-    else callback('Ошибка: '+(data.error?.message||'нет ответа'));
-  }catch(e){callback('Ошибка: '+e.message);}
+    micStream=await navigator.mediaDevices.getUserMedia({audio:true});
+    document.getElementById('micBtn').textContent='🛑 Стоп микрофон';
+    document.getElementById('micBtn').classList.add('active');
+    setupMicAnalyser();
+    addSys('🎤 Микрофон подключён — Алина слышит вас');
+  }catch(e){addSys('Не удалось захватить микрофон: '+e.message);}
 }
 
-// ── TTS QUEUE ─────────────────────────────────────────────────────
-let mainQueue=[],commentQueue=[],isSpeaking=false;
-function enqueueSpeak(text,sidebarId){mainQueue.push({text,sidebarId});if(!isSpeaking)processNextSpeech();}
-function enqueueComment(text,sidebarId){commentQueue.push({text,sidebarId});if(!isSpeaking)processNextSpeech();}
+function setupMicAnalyser(){
+  const ctx=new AudioContext();
+  const src=ctx.createMediaStreamSource(micStream);
+  micAnalyser=ctx.createAnalyser();
+  micAnalyser.fftSize=256;
+  src.connect(micAnalyser);
+  const buf=new Uint8Array(micAnalyser.frequencyBinCount);
+  let silenceCount=0;
+  function tick(){
+    if(!micStream){return;}
+    micAnimFrame=requestAnimationFrame(tick);
+    micAnalyser.getByteFrequencyData(buf);
+    const vol=buf.reduce((a,b)=>a+b,0)/buf.length;
+    const pct=Math.round(vol/255*100);
+    document.getElementById('micLevel').textContent='Уровень: '+pct+'%';
+    const thr=parseInt(document.getElementById('micThreshold').value,10);
+    // Реакция на тишину после разговора (стримеры говорили, потом замолчали)
+    if(vol>thr*2.5){silenceCount=0;}
+    else{silenceCount++;}
+    if(silenceCount===80&&connected&&!commentCooldown){
+      silenceCount=0;
+      const now=Date.now();
+      if(now-lastAnalyzeTime>20000){
+        lastAnalyzeTime=now;
+        // Пауза в разговоре — Алина может вставить реплику
+        if(Math.random()>0.6){alinaInterrupt();}
+      }
+    }
+  }
+  tick();
+}
+
+function startAnalyzeTimer(){
+  if(analyzeTimer)clearInterval(analyzeTimer);
+  const interval=parseInt(document.getElementById('analyzeInterval').value,10);
+  if(interval<=0)return;
+  analyzeTimer=setInterval(analyzeStream,interval*1000);
+}
+
+async function analyzeStream(){
+  if(!screenStream||!connected)return;
+  const now=Date.now();
+  if(now-lastAnalyzeTime<15000)return; // не чаще раза в 15 сек
+  lastAnalyzeTime=now;
+  // Захватываем кадр с экрана
+  try{
+    if(!screenCanvas)screenCanvas=document.createElement('canvas');
+    const vid=document.getElementById('screenVideo');
+    if(!vid.videoWidth)return;
+    screenCanvas.width=640;
+    screenCanvas.height=360;
+    const ctx2=screenCanvas.getContext('2d');
+    ctx2.drawImage(vid,0,0,640,360);
+    const b64=screenCanvas.toDataURL('image/jpeg',0.6).split(',')[1];
+    const act=getActivity();
+    const prompt=`Ты Алина — токсичная фудкортница на Twitch стриме. Посмотри на скриншот стрима (активность: ${act}) и скажи что-нибудь токсичное/смешное/провокационное про то что видишь. 1-2 предложения максимум.`;
+    const ans=await callGroq(prompt,buildSystem('Реагируй на то что видишь на экране стрима.'),100,b64);
+    if(!ans)return;
+    addMemory('Алина увидела на экране: "'+ans.slice(0,50)+'"');
+    const sid=addSidebarEvent('Алина','insight',ans);
+    enqueueComment(ans,sid);
+    startCooldown();
+  }catch(e){console.error('Analyze error:',e);}
+}
+
+// ── COOLDOWN ─────────────────────────────────────────────────────
+function startCooldown(){
+  const secs=getCool();if(secs<=0)return;
+  if(cooldownInterval)clearInterval(cooldownInterval);
+  commentCooldown=true;let rem=secs;
+  setStatus('cool','Пауза '+rem+'с'+(pendingItem?' · есть в очереди':''));
+  cooldownInterval=setInterval(()=>{rem--;
+    if(rem>0){setStatus('cool','Пауза '+rem+'с'+(pendingItem?' · есть в очереди':''));}
+    else{clearInterval(cooldownInterval);cooldownInterval=null;commentCooldown=false;
+      if(pendingItem){const it=pendingItem;pendingItem=null;
+        const sid=addSidebarItem(it.author,it.text,it.color,it.isCmd?'ai':null);
+        const o=document.getElementById(it.sid);if(o)o.remove();
+        processMsgNow(it.author,it.text,it.color,it.isCmd,document.getElementById('autoComment').checked);
+      } else if(connected)setStatus('live','Подключено к #'+document.getElementById('channel').value.trim());
+    }
+  },1000);
+}
+
+// ── TTS ───────────────────────────────────────────────────────────
+function enqueueSpeak(text,sid){mainQueue.push({text,sid});if(!isSpeaking)processNextSpeech();}
+function enqueueComment(text,sid){commentQueue.push({text,sid});if(!isSpeaking)processNextSpeech();}
 function processNextSpeech(){
   let item=mainQueue.length?mainQueue.shift():commentQueue.length?commentQueue.shift():null;
   if(!item){isSpeaking=false;setWave(false);return;}
   isSpeaking=true;setWave(true);
-  if(item.sidebarId)markSidebarSpeaking(item.sidebarId,true);
+  if(item.sid)markSpeaking(item.sid,true);
   const utt=new SpeechSynthesisUtterance(item.text);
   const v=voices.find(x=>x.name===document.getElementById('voiceSelect').value);
   if(v)utt.voice=v;
   utt.rate=parseFloat(document.getElementById('rateSelect').value);
   utt.volume=parseFloat(document.getElementById('volRange').value);
-  utt.onend=()=>{if(item.sidebarId)markSidebarSpeaking(item.sidebarId,false);processNextSpeech();};
-  utt.onerror=()=>{if(item.sidebarId)markSidebarSpeaking(item.sidebarId,false);processNextSpeech();};
+  utt.onend=()=>{if(item.sid)markSpeaking(item.sid,false);processNextSpeech();};
+  utt.onerror=()=>{if(item.sid)markSpeaking(item.sid,false);processNextSpeech();};
   window.speechSynthesis.speak(utt);
 }
 
-// ── FEED UI ───────────────────────────────────────────────────────
-function clearFeed(){document.getElementById('feed').innerHTML='';}
-function addSystemMsg(t){const el=document.createElement('div');el.className='system-msg';el.textContent=t;appendFeed(el);}
-let lastAiBox=null;
+// ── SIDEBAR ───────────────────────────────────────────────────────
+function mkId(){return'si_'+Date.now()+'_'+Math.random().toString(36).slice(2);}
+function addSidebarItem(author,text,color,badge){
+  const sf=document.getElementById('sidebarFeed');
+  const id=mkId();
+  const div=document.createElement('div');div.className='si';div.id=id;
+  const bhtml=badge?`<span class="badge ${badge}">${badge==='ai'?'!алина':badge}</span>`:'';
+  div.innerHTML=`<div class="si-who" style="color:${color}">${esc(author)} ${bhtml}</div>
+    <div class="think">Алина думает<span class="tdots"><span>.</span><span>.</span><span>.</span></span></div>
+    <div class="si-orig">${esc(text.length>55?text.slice(0,55)+'…':text)}</div>`;
+  sf.appendChild(div);sf.scrollTop=sf.scrollHeight;
+  commentCount++;document.getElementById('commentCount').textContent=commentCount+' реплик';
+  return id;
+}
+function addSidebarQueued(author,text,color,isCmd){
+  const sf=document.getElementById('sidebarFeed');
+  const id=mkId();
+  const div=document.createElement('div');div.className='si';div.id=id;
+  div.innerHTML=`<div class="si-who" style="color:${color}">${esc(author)} <span class="badge q">⏳ очередь</span></div>
+    <div class="q-lbl" style="font-size:10px;color:#f59e0b;margin-bottom:2px">ждёт паузы...</div>
+    <div class="si-orig">${esc(text.length>55?text.slice(0,55)+'…':text)}</div>`;
+  sf.appendChild(div);sf.scrollTop=sf.scrollHeight;
+  return id;
+}
+function addSidebarEvent(user,type,comment){
+  const sf=document.getElementById('sidebarFeed');
+  const id=mkId();
+  const typeColors={ev:'#1db954',insight:'#8888ff',ai:'#e535ab'};
+  const color=typeColors[type]||'#888';
+  const div=document.createElement('div');div.className='si';div.id=id;
+  div.innerHTML=`<div class="si-who" style="color:${color}">${esc(user)} <span class="badge ${type}">${type==='ev'?'событие':type==='insight'?'инсайд':'ai'}</span></div>
+    <div class="si-comment">💬 ${esc(comment)}</div>`;
+  sf.appendChild(div);sf.scrollTop=sf.scrollHeight;
+  commentCount++;document.getElementById('commentCount').textContent=commentCount+' реплик';
+  return id;
+}
+function updateSidebarComment(id,comment){
+  const item=document.getElementById(id);if(!item)return;
+  const t=item.querySelector('.think');if(t)t.remove();
+  const ex=item.querySelector('.si-comment');if(ex)ex.remove();
+  const el=document.createElement('div');el.className='si-comment';
+  el.textContent='💬 '+comment;
+  item.insertBefore(el,item.querySelector('.si-orig'));
+}
+function markSpeaking(id,on){
+  if(!id)return;const item=document.getElementById(id);if(!item)return;
+  item.classList.toggle('speaking-now',on);
+  const ex=item.querySelector('.spk-dot');
+  if(on&&!ex){const d=document.createElement('div');d.className='spk-dot';item.appendChild(d);item.scrollIntoView({behavior:'smooth',block:'nearest'});}
+  else if(!on&&ex)ex.remove();
+}
+
+// ── FEED ──────────────────────────────────────────────────────────
+function addSys(t){const el=document.createElement('div');el.className='sys';el.textContent=t;appendFeed(el);}
 function addMsgToFeed(author,text,color,isCmd){
-  const initials=author.slice(0,2).toUpperCase();
-  const bg=hexSoft(color); const boxId='ai_'+Date.now();
-  const div=document.createElement('div'); div.className='msg';
-  div.innerHTML=`<div class="msg-av" style="background:${bg};color:${color}">${initials}</div>
-    <div class="msg-body">
-      <div class="msg-meta"><span class="msg-author" style="color:${color}">${esc(author)}</span><span class="msg-time">${getTime()}</span></div>
-      <div class="msg-text">${esc(text)}</div>
-      ${isCmd?`<div class="ai-box" id="${boxId}"><div class="ai-label">⌛ AI думает...</div><div class="ai-text"></div></div>`:''}
+  const ini=author.slice(0,2).toUpperCase();
+  const bg=hexSoft(color);const boxId='ai_'+Date.now();
+  const div=document.createElement('div');div.className='msg';
+  div.innerHTML=`<div class="av" style="background:${bg};color:${color}">${ini}</div>
+    <div class="mb">
+      <div class="mm"><span class="ma" style="color:${color}">${esc(author)}</span><span class="mt">${getTime()}</span></div>
+      <div class="mx">${esc(text)}</div>
+      ${isCmd?`<div class="ai-box" id="${boxId}"><div class="ai-lbl">⌛ Алина думает...</div><div class="ai-tx"></div></div>`:''}
     </div>`;
   appendFeed(div);
   if(isCmd)lastAiBox=document.getElementById(boxId);
 }
-function updateLastAiReply(answer){
+function updateLastAiReply(ans){
   if(!lastAiBox)return;
-  lastAiBox.querySelector('.ai-label').textContent='▶ AI ответил вслух';
-  lastAiBox.querySelector('.ai-text').textContent=answer;
+  lastAiBox.querySelector('.ai-lbl').textContent='▶ Алина ответила';
+  lastAiBox.querySelector('.ai-tx').textContent=ans;
 }
 function appendFeed(el){const f=document.getElementById('feed');f.appendChild(el);f.scrollTop=f.scrollHeight;}
 
 // ── STATUS ────────────────────────────────────────────────────────
 function setStatus(state,text){
-  const dot=document.getElementById('statusDot'); dot.className='dot';
+  const dot=document.getElementById('statusDot');dot.className='dot';
   if(state==='live')dot.classList.add('live');
   if(state==='speaking')dot.classList.add('speaking');
-  if(state==='cooldown')dot.classList.add('cooldown');
+  if(state==='cool')dot.classList.add('cool');
   document.getElementById('statusText').textContent=text;
 }
 function setWave(show){
   document.getElementById('wave').classList.toggle('show',show);
-  if(show)setStatus('speaking','Бот говорит...');
-  else if(commentCooldown){/* cooldown handles its own status */}
+  if(show)setStatus('speaking','Алина говорит...');
+  else if(commentCooldown){}
   else if(connected)setStatus('live','Подключено к #'+document.getElementById('channel').value.trim());
-}
-
-// ── UTILS ─────────────────────────────────────────────────────────
-function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-function getTime(){const d=new Date();return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');}
-function hexSoft(hex){
-  if(!hex||!hex.startsWith('#'))return'#1a1025';
-  try{const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);return`rgba(${r},${g},${b},0.15)`;}
-  catch(e){return'#1a1025';}
 }
 </script>
 </body>
