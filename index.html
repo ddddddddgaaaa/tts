@@ -25,7 +25,6 @@
   .field .hint{font-size:11px;color:#777;margin-top:4px}
   .field .hint a{color:#9147ff;text-decoration:none}
 
-  /* persona */
   .persona-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
   .persona-card{background:#0e0e10;border:1px solid #2d2d35;border-radius:10px;padding:10px 12px;cursor:pointer;transition:all .15s}
   .persona-card:hover{border-color:#555}
@@ -34,7 +33,6 @@
   .persona-card .p-desc{font-size:11px;color:#777;line-height:1.4}
   .persona-card .p-emoji{font-size:18px;margin-bottom:4px}
 
-  /* toggle */
   .toggle-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-top:1px solid #2d2d35}
   .toggle-row label.tl{font-size:13px;color:#adadb8;flex:1}
   .toggle{position:relative;width:38px;height:20px;cursor:pointer;flex-shrink:0}
@@ -53,6 +51,7 @@
   .dot{width:9px;height:9px;border-radius:50%;background:#555;flex-shrink:0;transition:background .3s}
   .dot.live{background:#1db954;animation:pulse 2s infinite}
   .dot.speaking{background:#9147ff;animation:pulse .7s infinite}
+  .dot.cooldown{background:#f59e0b;animation:pulse 1s infinite}
   @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
   .wave{display:none;align-items:flex-end;gap:2px;height:14px}
   .wave.show{display:flex}
@@ -62,7 +61,6 @@
   .wave span:nth-child(4){animation-delay:.3s}
   @keyframes wv{0%,100%{height:3px}50%{height:13px}}
 
-  /* MAIN LAYOUT — chat + sidebar */
   .main-layout{display:grid;grid-template-columns:1fr 320px;gap:14px;align-items:start}
 
   .feed{background:#0e0e10;border:1px solid #2d2d35;border-radius:12px;padding:14px;height:420px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;scroll-behavior:smooth}
@@ -81,7 +79,6 @@
   .ai-text{font-size:13px;color:#c4c4cc;line-height:1.45}
   .system-msg{font-size:12px;color:#555;text-align:center;padding:4px 0}
 
-  /* SIDEBAR */
   .sidebar{display:flex;flex-direction:column;gap:0}
   .sidebar-header{background:#18181b;border:1px solid #2d2d35;border-radius:12px 12px 0 0;padding:12px 14px;display:flex;align-items:center;gap:8px}
   .sidebar-header .sh-icon{font-size:16px}
@@ -131,7 +128,6 @@
   </h1>
   <p class="subtitle">Читает чат, отвечает голосом и придумывает комментарии к каждому сообщению</p>
 
-  <!-- ПОДКЛЮЧЕНИЕ -->
   <div class="card">
     <h2>Подключение</h2>
     <div class="row2">
@@ -152,7 +148,6 @@
     <button class="btn-main" id="connectBtn" onclick="toggleConnect()">Подключиться к чату</button>
   </div>
 
-  <!-- ЛИЧНОСТЬ -->
   <div class="card">
     <h2>Личность бота</h2>
     <div class="persona-grid">
@@ -193,7 +188,6 @@
     </div>
   </div>
 
-  <!-- ГОЛОС -->
   <div class="card">
     <h2>Голос и поведение</h2>
     <div class="row2">
@@ -232,23 +226,26 @@
       <label class="tl">Зачитывать AI-комментарий вслух после сообщения</label>
       <label class="toggle"><input type="checkbox" id="readComment" checked/><span class="toggle-slider"></span></label>
     </div>
+    <div class="toggle-row">
+      <label class="tl">Пауза между AI-комментариями (сек)</label>
+      <div style="display:flex;align-items:center;gap:8px">
+        <input type="range" id="cooldownRange" min="0" max="30" step="1" value="10" style="width:100px;accent-color:#9147ff"/>
+        <span id="cooldownVal" style="font-size:12px;color:#9147ff;min-width:28px;text-align:right">10с</span>
+      </div>
+    </div>
   </div>
 
-  <!-- STATUS -->
   <div class="status">
     <div class="dot" id="statusDot"></div>
     <span id="statusText">Не подключено</span>
     <div class="wave" id="wave"><span></span><span></span><span></span><span></span></div>
   </div>
 
-  <!-- MAIN LAYOUT -->
   <div class="main-layout">
-    <!-- ЧАТ -->
     <div class="feed" id="feed">
       <div class="system-msg">Чат появится здесь после подключения</div>
     </div>
 
-    <!-- БОКОВАЯ ПАНЕЛЬ -->
     <div class="sidebar">
       <div class="sidebar-header">
         <span class="sh-icon">🤖</span>
@@ -269,7 +266,6 @@
 </div>
 
 <script>
-// ── PERSONAS ──────────────────────────────────────────────────────
 const PERSONAS = {
   funny: `Ты угарный AI-бот на Twitch стриме. Твоя цель — рассмешить чат.
 Отвечай ОЧЕНЬ КРАТКО (1-2 предложения), шути, придумывай абсурдные сравнения, иногда неожиданно переключайся на несвязанную тему, добавляй мемные отсылки. Можешь по-доброму подколоть зрителя. Отвечай на том же языке что вопрос.`,
@@ -284,7 +280,6 @@ const PERSONAS = {
   custom: ''
 };
 
-// Промпт для боковых комментариев — отдельный от личности
 const COMMENT_PROMPTS = {
   funny: `Ты саркастичный и угарный комментатор Twitch чата. Тебе показывают сообщение от зрителя, и ты должен придумать КОРОТКИЙ (1 предложение) смешной или абсурдный комментарий к нему — как будто ты диджей на радио который прикалывается над слушателями. Никогда не будь серьёзным. Отвечай на том же языке что сообщение. Отвечай ТОЛЬКО комментарием, без предисловий.`,
   sarcastic: `Ты невероятно саркастичный комментатор Twitch чата. Тебе показывают сообщение зрителя, и ты выдаёшь КОРОТКИЙ (1 предложение) едкий саркастичный комментарий — как Дрейк который смотрит на это свысока. Отвечай на том же языке что сообщение. Отвечай ТОЛЬКО комментарием.`,
@@ -311,6 +306,33 @@ function getCommentPrompt() {
   return COMMENT_PROMPTS[currentPersona] || COMMENT_PROMPTS.custom;
 }
 
+// ── COOLDOWN STATE ─────────────────────────────────────────────────
+let commentCooldown = false;
+let cooldownTimer = null;
+let cooldownCountdown = null;
+
+function getCooldownSeconds() {
+  return parseInt(document.getElementById('cooldownRange').value, 10);
+}
+
+function startCooldown() {
+  const secs = getCooldownSeconds();
+  if (secs <= 0) return;
+  commentCooldown = true;
+  let remaining = secs;
+  setStatus('cooldown', 'Пауза ' + remaining + 'с перед следующим комментарием...');
+  cooldownCountdown = setInterval(() => {
+    remaining--;
+    if (remaining > 0) {
+      setStatus('cooldown', 'Пауза ' + remaining + 'с перед следующим комментарием...');
+    } else {
+      clearInterval(cooldownCountdown);
+      commentCooldown = false;
+      if (connected) setStatus('live', 'Подключено к #' + document.getElementById('channel').value.trim());
+    }
+  }, 1000);
+}
+
 // ── STATE ─────────────────────────────────────────────────────────
 let ws = null, connected = false, speaking = false, speakQueue = [], voices = [];
 let commentCount = 0;
@@ -334,6 +356,9 @@ window.speechSynthesis.onvoiceschanged = loadVoices;
 loadVoices();
 document.getElementById('volRange').oninput = function() {
   document.getElementById('volVal').textContent = Math.round(this.value * 100) + '%';
+};
+document.getElementById('cooldownRange').oninput = function() {
+  document.getElementById('cooldownVal').textContent = this.value + 'с';
 };
 
 // ── CONNECT ───────────────────────────────────────────────────────
@@ -372,7 +397,6 @@ function connect() {
       document.getElementById('connectBtn').classList.add('connected');
       clearFeed();
       addSystemMsg('Подключено к #' + channel + ' — слушаю чат...');
-      // clear sidebar placeholder
       document.getElementById('sidebarFeed').innerHTML = '';
     }
   }, 1500);
@@ -381,6 +405,8 @@ function connect() {
 function disconnect() {
   if (ws) { ws.close(); ws = null; }
   connected = false;
+  commentCooldown = false;
+  if (cooldownCountdown) clearInterval(cooldownCountdown);
   setStatus('off', 'Отключено');
   document.getElementById('connectBtn').textContent = 'Подключиться к чату';
   document.getElementById('connectBtn').classList.remove('connected');
@@ -415,33 +441,37 @@ function handleMsg(author, text, color) {
   const readNickAll = document.getElementById('readNickAll').checked;
   const readComment = document.getElementById('readComment').checked;
 
-  // Add to sidebar regardless
-  const sidebarId = addSidebarItem(author, text, color, isCmd ? 'ai-reply' : null);
+  // Add to sidebar only if not on cooldown
+  if (!commentCooldown) {
+    const sidebarId = addSidebarItem(author, text, color, isCmd ? 'ai-reply' : null);
+    generateComment(text, author, sidebarId, readComment);
 
-  // Get AI comment for sidebar
-  generateComment(text, author, sidebarId, readComment);
+    if (readAll && !isCmd) {
+      addMsgToFeed(author, text, color, false);
+      const speech = readNickAll ? (author + ' говорит: ' + text) : text;
+      enqueueSpeak(speech, sidebarId);
+      return;
+    }
 
-  if (readAll && !isCmd) {
-    addMsgToFeed(author, text, color, false);
-    const speech = readNickAll ? (author + ' говорит: ' + text) : text;
-    enqueueSpeak(speech, sidebarId);
-    return;
-  }
+    if (isCmd) {
+      const question = text.slice(trigger.length).trim();
+      if (!question) return;
+      addMsgToFeed(author, text, color, true);
+      // FIX: readNick now correctly prepends author name before the AI answer
+      askGroq(author, question, (answer) => {
+        updateLastAiReply(answer);
+        const readNick = document.getElementById('readNick').checked;
+        const speech = readNick ? (author + ' спрашивает: ' + answer) : answer;
+        enqueueSpeak(speech, sidebarId);
+      });
+      return;
+    }
 
-  if (isCmd) {
-    const question = text.slice(trigger.length).trim();
-    if (!question) return;
-    addMsgToFeed(author, text, color, true);
-    askGroq(author, question, (answer) => {
-      updateLastAiReply(answer);
-      const readNick = document.getElementById('readNick').checked;
-      enqueueSpeak(readNick ? (author + ': ' + answer) : answer, sidebarId);
-    });
-    return;
-  }
-
-  // just show in feed if not reading all
-  if (!readAll) {
+    if (!readAll) {
+      addMsgToFeed(author, text, color, false);
+    }
+  } else {
+    // Still show in feed even during cooldown, just no AI comment
     addMsgToFeed(author, text, color, false);
   }
 }
@@ -501,7 +531,6 @@ function markSidebarSpeaking(id, on) {
 async function generateComment(text, author, sidebarId, readAloud) {
   const apiKey = document.getElementById('apikey').value.trim();
   if (!apiKey) return;
-  // skip very short messages / spam
   if (text.length < 3) {
     updateSidebarComment(sidebarId, '(слишком коротко для комментария)');
     return;
@@ -525,6 +554,8 @@ async function generateComment(text, author, sidebarId, readAloud) {
       updateSidebarComment(sidebarId, comment);
       if (readAloud) {
         enqueueComment(comment, sidebarId);
+        // Start cooldown AFTER queuing the comment
+        startCooldown();
       }
     } else {
       updateSidebarComment(sidebarId, '...');
@@ -557,10 +588,8 @@ async function askGroq(author, question, callback) {
 }
 
 // ── TTS QUEUE ─────────────────────────────────────────────────────
-// Two queues: main (chat reading / AI replies) and comments (sidebar)
-// Comments play after main queue item finishes
-let mainQueue = [];   // {text, sidebarId}
-let commentQueue = []; // {text, sidebarId}
+let mainQueue = [];
+let commentQueue = [];
 let isSpeaking = false;
 
 function enqueueSpeak(text, sidebarId) {
@@ -574,7 +603,6 @@ function enqueueComment(text, sidebarId) {
 }
 
 function processNextSpeech() {
-  // main first, then comments
   let item = mainQueue.length ? mainQueue.shift() : commentQueue.length ? commentQueue.shift() : null;
   if (!item) { isSpeaking = false; setWave(false); return; }
   isSpeaking = true; setWave(true);
@@ -629,11 +657,13 @@ function setStatus(state, text) {
   dot.className = 'dot';
   if (state==='live') dot.classList.add('live');
   if (state==='speaking') dot.classList.add('speaking');
+  if (state==='cooldown') dot.classList.add('cooldown');
   document.getElementById('statusText').textContent = text;
 }
 function setWave(show) {
   document.getElementById('wave').classList.toggle('show', show);
   if (show) setStatus('speaking','Бот говорит...');
+  else if (commentCooldown) { /* cooldown status handles itself */ }
   else if (connected) setStatus('live','Подключено к #'+document.getElementById('channel').value.trim());
 }
 
