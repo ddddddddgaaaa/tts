@@ -509,7 +509,8 @@ function processMsgNow(author,text,color,isCmd,autoComment){
       const rn=document.getElementById('readNick').checked;
       const rm=document.getElementById('readMsg').checked;
       if(rm)enqueueSpeak(author+' спрашивает: '+q,null);
-      enqueueSpeak(rn?(author+', '+ans):ans,sid);
+      if(rn){enqueueNickThenAnswer(author,ans,sid);}
+      else{enqueueSpeak(ans,sid);}
       startCooldown();
     });
     return;
@@ -535,9 +536,11 @@ function processMsgNow(author,text,color,isCmd,autoComment){
     if(!ans)return;
     addMemory('Алина про '+author+': "'+ans.slice(0,50)+'"');
     updateSidebarComment(sid,ans);
+    const rn=document.getElementById('readNick').checked;
     const rm=document.getElementById('readMsg').checked;
     if(rm)enqueueSpeak(author+': '+text,null);
-    enqueueComment(ans,sid);
+    if(rn){enqueueNickThenAnswer(author,ans,sid);}
+    else{enqueueComment(ans,sid);}
     startCooldown();
   });
 }
@@ -641,7 +644,8 @@ async function alinaRoastTarget(){
   if(!ans)return;
   addMemory('Алина: наехала на '+currentTarget);
   const sid=addSidebarEvent(currentTarget,'ev',ans);
-  enqueueSpeak(document.getElementById('readNick').checked?(currentTarget+', '+ans):ans,sid);
+  if(document.getElementById('readNick').checked){enqueueNickThenAnswer(currentTarget,ans,sid);}
+  else{enqueueSpeak(ans,sid);}
 }
 
 async function alinaInterrupt(){
@@ -792,6 +796,12 @@ function startCooldown(){
 
 // ── TTS ───────────────────────────────────────────────────────────
 function enqueueSpeak(text,sid){mainQueue.push({text,sid});if(!isSpeaking)processNextSpeech();}
+function enqueueNickThenAnswer(nick,answer,sid){
+  // Произносит НИК отдельным utterance — реальная пауза — потом ответ
+  mainQueue.push({text:nick,sid:null,pauseAfter:350});
+  mainQueue.push({text:answer,sid});
+  if(!isSpeaking)processNextSpeech();
+}
 function enqueueComment(text,sid){commentQueue.push({text,sid});if(!isSpeaking)processNextSpeech();}
 function processNextSpeech(){
   let item=mainQueue.length?mainQueue.shift():commentQueue.length?commentQueue.shift():null;
@@ -803,7 +813,11 @@ function processNextSpeech(){
   if(v)utt.voice=v;
   utt.rate=parseFloat(document.getElementById('rateSelect').value);
   utt.volume=parseFloat(document.getElementById('volRange').value);
-  utt.onend=()=>{if(item.sid)markSpeaking(item.sid,false);processNextSpeech();};
+  utt.onend=()=>{
+    if(item.sid)markSpeaking(item.sid,false);
+    if(item.pauseAfter){setTimeout(processNextSpeech,item.pauseAfter);}
+    else{processNextSpeech();}
+  };
   utt.onerror=()=>{if(item.sid)markSpeaking(item.sid,false);processNextSpeech();};
   window.speechSynthesis.speak(utt);
 }
