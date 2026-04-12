@@ -158,38 +158,76 @@ footer a{color:#e535ab;text-decoration:none}
 
 <!-- ГОЛОС И ТАЙМИНГИ -->
 <div class="card">
-  <h2><span class="ico">🎙️</span> Голос и тайминги</h2>
-  <div class="row3">
-    <div class="field"><label>Голос TTS</label><select id="voiceSelect"></select></div>
-    <div class="field"><label>Скорость речи</label>
-      <select id="rateSelect">
-        <option value="0.9">Медленно</option>
-        <option value="1.05" selected>Нормально</option>
-        <option value="1.2">Быстро</option>
-        <option value="1.5">Очень быстро</option>
-      </select>
+  <h2><span class="ico">🎙️</span> Голос Алины</h2>
+
+  <!-- Выбор движка голоса -->
+  <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap" id="voiceEngineRow">
+    <button class="btn-sm active" id="engBrowser" onclick="setEngine('browser')">🔈 Браузер (бесплатно)</button>
+    <button class="btn-sm" id="engElevenLabs" onclick="setEngine('elevenlabs')">✨ ElevenLabs (реалистично)</button>
+  </div>
+
+  <!-- Браузерный TTS -->
+  <div id="browserVoicePanel">
+    <div class="row2">
+      <div class="field"><label>Голос браузера</label><select id="voiceSelect"></select></div>
+      <div class="field"><label>Скорость речи</label>
+        <select id="rateSelect">
+          <option value="0.9">Медленно</option>
+          <option value="1.05" selected>Нормально</option>
+          <option value="1.2">Быстро</option>
+          <option value="1.5">Очень быстро</option>
+        </select>
+      </div>
     </div>
-    <div class="field"><label>Пауза между репликами</label>
-      <select id="coolSec">
-        <option value="0">Без паузы</option>
-        <option value="5">5 сек</option>
-        <option value="10">10 сек</option>
-        <option value="15" selected>15 сек</option>
-        <option value="20">20 сек</option>
-        <option value="30">30 сек</option>
-        <option value="45">45 сек</option>
-        <option value="60">1 минута</option>
-      </select>
+    <div style="font-size:11px;color:#555;margin-top:4px">
+      💡 Для хорошего женского голоса на русском: в Windows установи голос <b style="color:#aaa">Microsoft Irina</b> или <b style="color:#aaa">Microsoft Svetlana</b> через Настройки → Речь.
+      На Mac есть <b style="color:#aaa">Milena</b> и <b style="color:#aaa">Katya</b>.
     </div>
   </div>
-  <div class="vol-row">
+
+  <!-- ElevenLabs TTS -->
+  <div id="elVoicePanel" style="display:none">
+    <div class="row2">
+      <div class="field">
+        <label>ElevenLabs API ключ</label>
+        <input id="elKey" type="password" placeholder="xi_..."/>
+        <div style="font-size:10px;color:#555;margin-top:3px">Бесплатно 10к символов/мес на <a href="https://elevenlabs.io" target="_blank" style="color:#e535ab">elevenlabs.io</a></div>
+      </div>
+      <div class="field">
+        <label>Голос</label>
+        <select id="elVoiceSelect">
+          <optgroup label="🇷🇺 Русские женские">
+            <option value="XrExE9yKIg1WjnnlVkGX">Matilda (RU, молодая)</option>
+            <option value="pFZP5JQG7iQjIQuC4Bku" selected>Lily (RU, игривая)</option>
+            <option value="jsCqWAovK2LkecY7zXl4">Freya (RU, уверенная)</option>
+            <option value="oWAxZDx7w5VEj9dCyTzz">Grace (RU, мягкая)</option>
+          </optgroup>
+          <optgroup label="🌍 Мультиязычные">
+            <option value="EXAVITQu4vr4xnSDxMaL">Bella (многояз.)</option>
+            <option value="21m00Tcm4TlvDq8ikWAM">Rachel (нейтральная)</option>
+            <option value="AZnzlk1XvdvUeBnXmlld">Domi (энергичная)</option>
+            <option value="MF3mGyEYCl7XYWbV9V6O">Elli (молодая)</option>
+          </optgroup>
+        </select>
+      </div>
+    </div>
+    <div class="row2" style="margin-top:8px">
+      <div class="field"><label>Стабильность (0 = живее, 1 = монотоннее)</label>
+        <input type="range" id="elStability" min="0" max="1" step="0.05" value="0.35" style="accent-color:#e535ab"/>
+        <span id="elStabVal" style="font-size:10px;color:#e535ab">0.35</span>
+      </div>
+      <div class="field"><label>Схожесть с голосом (выше = чище)</label>
+        <input type="range" id="elSimilarity" min="0" max="1" step="0.05" value="0.75" style="accent-color:#e535ab"/>
+        <span id="elSimVal" style="font-size:10px;color:#e535ab">0.75</span>
+      </div>
+    </div>
+    <div id="elStatus" style="font-size:11px;color:#555;margin-top:5px">ElevenLabs не подключён</div>
+  </div>
+
+  <div class="vol-row" style="margin-top:10px">
     <label>Громкость:</label>
     <input type="range" id="volRange" min="0" max="1" step="0.05" value="0.85"/>
     <span id="volVal">85%</span>
-  </div>
-  <div class="trow">
-    <label class="tl">Автокомментировать все сообщения чата</label>
-    <label class="tog"><input type="checkbox" id="autoComment" checked/><span class="tog-sl"></span></label>
   </div>
   <div class="trow">
     <label class="tl">Произносить ник перед ответом</label>
@@ -202,6 +240,81 @@ footer a{color:#e535ab;text-decoration:none}
   <div class="trow">
     <label class="tl">Спорить с нами (может перебить стримеров)</label>
     <label class="tog"><input type="checkbox" id="canInterrupt" checked/><span class="tog-sl"></span></label>
+  </div>
+</div>
+
+<!-- ТАЙМИНГИ ЧАТА -->
+<div class="card">
+  <h2><span class="ico">⏱️</span> Режим реакции на чат</h2>
+  <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap">
+    <button class="btn-sm active" id="modeEvery" onclick="setChatMode('every')">💬 Каждое сообщение</button>
+    <button class="btn-sm" id="modeWindow" onclick="setChatMode('window')">🪟 Окно реакции (рекомендуется)</button>
+    <button class="btn-sm" id="modeManual" onclick="setChatMode('manual')">🔇 Только по команде</button>
+  </div>
+
+  <!-- Режим каждое сообщение -->
+  <div id="modeEveryPanel">
+    <div class="field"><label>Пауза между репликами (сек)</label>
+      <select id="coolSec">
+        <option value="5">5 сек</option>
+        <option value="10">10 сек</option>
+        <option value="15" selected>15 сек</option>
+        <option value="20">20 сек</option>
+        <option value="30">30 сек</option>
+        <option value="45">45 сек</option>
+        <option value="60">1 мин</option>
+      </select>
+    </div>
+    <div class="trow" style="padding-top:8px">
+      <label class="tl">Автокомментировать все сообщения</label>
+      <label class="tog"><input type="checkbox" id="autoComment" checked/><span class="tog-sl"></span></label>
+    </div>
+  </div>
+
+  <!-- Режим окна -->
+  <div id="modeWindowPanel" style="display:none">
+    <div class="row3">
+      <div class="field">
+        <label>Алина молчит (сек)</label>
+        <input type="number" id="windowSilence" value="30" min="5" max="300"
+          style="font-size:13px;padding:7px 10px;border:1px solid #2a2a32;border-radius:8px;background:#0a0a0d;color:#efeff1;width:100%;outline:none"/>
+        <div style="font-size:10px;color:#555;margin-top:3px">Чат копится, Алина не реагирует</div>
+      </div>
+      <div class="field">
+        <label>Окно открыто (сек)</label>
+        <input type="number" id="windowOpen" value="8" min="2" max="60"
+          style="font-size:13px;padding:7px 10px;border:1px solid #2a2a32;border-radius:8px;background:#0a0a0d;color:#efeff1;width:100%;outline:none"/>
+        <div style="font-size:10px;color:#555;margin-top:3px">Берёт 1 сообщение и отвечает</div>
+      </div>
+      <div class="field">
+        <label>Макс. сообщений из очереди</label>
+        <input type="number" id="windowPickN" value="1" min="1" max="5"
+          style="font-size:13px;padding:7px 10px;border:1px solid #2a2a32;border-radius:8px;background:#0a0a0d;color:#efeff1;width:100%;outline:none"/>
+        <div style="font-size:10px;color:#555;margin-top:3px">1 = самое интересное, 2-3 = несколько</div>
+      </div>
+    </div>
+    <!-- Визуальный таймер окна -->
+    <div style="margin-top:10px;background:#0a0a0d;border:1px solid #1a1a22;border-radius:8px;padding:10px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <span id="windowStateLabel" style="font-size:11px;color:#555">Ожидание подключения...</span>
+        <span id="windowCountLabel" style="font-size:11px;color:#444">0 в очереди</span>
+      </div>
+      <div style="height:5px;background:#1a1a22;border-radius:3px;overflow:hidden">
+        <div id="windowProgressBar" style="height:100%;width:0%;border-radius:3px;transition:width .5s linear;background:#333"></div>
+      </div>
+    </div>
+    <!-- Кнопка выбора сообщения из очереди -->
+    <div style="margin-top:8px;font-size:11px;color:#555">
+      Алина сама выбирает на что ответить — берёт самое смешное/провокационное из очереди
+    </div>
+  </div>
+
+  <!-- Режим только по команде -->
+  <div id="modeManualPanel" style="display:none">
+    <div style="font-size:12px;color:#888;padding:6px 0;line-height:1.7">
+      Алина молчит на чат автоматически.<br/>
+      Реагирует только на команду <span style="color:#e535ab">!алина</span> или кнопки событий вручную.
+    </div>
   </div>
 </div>
 
@@ -363,7 +476,7 @@ function getRival(){return document.getElementById('rivalName').value.trim()||''
 function getActivity(){return document.getElementById('streamActivity').value.trim()||'стримим';}
 function getTopic(){return document.getElementById('streamTopic').value.trim()||'';}
 function getPromos(){return document.getElementById('promos').value.trim();}
-function getCool(){return parseInt(document.getElementById('coolSec').value,10);}
+function getCool(){const el=document.getElementById('coolSec');return el?parseInt(el.value,10):15;}
 function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function getTime(){const d=new Date();return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');}
 function hexSoft(hex){if(!hex||!hex.startsWith('#'))return'#1a0818';try{const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);return`rgba(${r},${g},${b},0.15)`;}catch(e){return'#1a0818';}}
@@ -442,15 +555,214 @@ function trackChatter(author,text){
 }
 
 // ── ГОЛОСА ────────────────────────────────────────────────────────
+// ── ГОЛОС: движок ────────────────────────────────────────────────
+let voiceEngine='browser'; // 'browser' | 'elevenlabs'
+let elAudioQueue=[], elPlaying=false;
+
+function setEngine(eng){
+  voiceEngine=eng;
+  document.getElementById('engBrowser').classList.toggle('active',eng==='browser');
+  document.getElementById('engElevenLabs').classList.toggle('active',eng==='elevenlabs');
+  document.getElementById('browserVoicePanel').style.display=eng==='browser'?'':'none';
+  document.getElementById('elVoicePanel').style.display=eng==='elevenlabs'?'':'none';
+}
+
+document.getElementById('elStability').oninput=function(){document.getElementById('elStabVal').textContent=this.value;};
+document.getElementById('elSimilarity').oninput=function(){document.getElementById('elSimVal').textContent=this.value;};
+
+// ── ГОЛОС: браузер ────────────────────────────────────────────────
 function loadVoices(){
   voices=window.speechSynthesis.getVoices();
   const sel=document.getElementById('voiceSelect');sel.innerHTML='';
-  const ru=voices.filter(v=>v.lang.startsWith('ru'));
+  // Сначала женские русские, потом остальные
+  const femaleRu=voices.filter(v=>v.lang.startsWith('ru')&&/irin|sveta|milena|katya|alena|oksana|nadia|julia|anna|female|женщ/i.test(v.name));
+  const allRu=voices.filter(v=>v.lang.startsWith('ru')&&!femaleRu.includes(v));
   const oth=voices.filter(v=>!v.lang.startsWith('ru'));
-  [...ru,...oth].forEach(v=>{const o=document.createElement('option');o.value=v.name;o.textContent=v.name+' ('+v.lang+')';sel.appendChild(o);});
+  const groups=[
+    {label:'👩 Русские женские',list:femaleRu},
+    {label:'🎙 Русские все',list:allRu},
+    {label:'🌍 Другие',list:oth}
+  ];
+  groups.forEach(g=>{
+    if(!g.list.length)return;
+    const og=document.createElement('optgroup');og.label=g.label;
+    g.list.forEach(v=>{const o=document.createElement('option');o.value=v.name;o.textContent=v.name+' ('+v.lang+')';og.appendChild(o);});
+    sel.appendChild(og);
+  });
+  // Автовыбор женского если есть
+  const firstFemale=femaleRu[0]||allRu[0];
+  if(firstFemale)sel.value=firstFemale.name;
 }
 window.speechSynthesis.onvoiceschanged=loadVoices;loadVoices();
 document.getElementById('volRange').oninput=function(){document.getElementById('volVal').textContent=Math.round(this.value*100)+'%';};
+
+// ── ГОЛОС: ElevenLabs ─────────────────────────────────────────────
+async function speakElevenLabs(text, sid){
+  const key=document.getElementById('elKey').value.trim();
+  if(!key){document.getElementById('elStatus').textContent='⚠️ Введи API ключ ElevenLabs';return;}
+  const voiceId=document.getElementById('elVoiceSelect').value;
+  const stability=parseFloat(document.getElementById('elStability').value);
+  const similarity=parseFloat(document.getElementById('elSimilarity').value);
+  document.getElementById('elStatus').textContent='⏳ Генерация...';
+  try{
+    const resp=await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}/stream`,{
+      method:'POST',
+      headers:{'xi-api-key':key,'Content-Type':'application/json','Accept':'audio/mpeg'},
+      body:JSON.stringify({
+        text,
+        model_id:'eleven_multilingual_v2',
+        voice_settings:{stability,similarity_boost:similarity,style:0.4,use_speaker_boost:true}
+      })
+    });
+    if(!resp.ok){const e=await resp.text();document.getElementById('elStatus').textContent='Ошибка: '+e.slice(0,80);return;}
+    const blob=await resp.blob();
+    const url=URL.createObjectURL(blob);
+    const audio=new Audio(url);
+    audio.volume=parseFloat(document.getElementById('volRange').value);
+    isSpeaking=true;setWave(true);
+    if(sid)markSpeaking(sid,true);
+    document.getElementById('elStatus').textContent='▶ Говорит...';
+    audio.onended=()=>{
+      URL.revokeObjectURL(url);
+      if(sid)markSpeaking(sid,false);
+      isSpeaking=false;
+      document.getElementById('elStatus').textContent='✓ Готово';
+      processNextSpeech();
+    };
+    audio.onerror=()=>{if(sid)markSpeaking(sid,false);isSpeaking=false;processNextSpeech();};
+    audio.play();
+  }catch(e){
+    document.getElementById('elStatus').textContent='Ошибка: '+e.message;
+    if(sid)markSpeaking(sid,false);isSpeaking=false;processNextSpeech();
+  }
+}
+
+// ── РЕЖИМ ЧАТА ────────────────────────────────────────────────────
+let chatMode='every'; // 'every' | 'window' | 'manual'
+let windowQueue=[]; // очередь сообщений в режиме окна
+let windowState='silence'; // 'silence' | 'open'
+let windowTimer=null, windowProgress=0, windowProgressTimer=null;
+
+function setChatMode(mode){
+  chatMode=mode;
+  ['every','window','manual'].forEach(m=>{
+    document.getElementById('mode'+m.charAt(0).toUpperCase()+m.slice(1)).classList.toggle('active',m===mode);
+    document.getElementById('mode'+m.charAt(0).toUpperCase()+m.slice(1)+'Panel').style.display=m===mode?'':'none';
+  });
+  if(mode==='window'&&connected)startWindowCycle();
+  else stopWindowCycle();
+}
+
+function startWindowCycle(){
+  stopWindowCycle();
+  runWindowSilence();
+}
+function stopWindowCycle(){
+  if(windowTimer){clearTimeout(windowTimer);windowTimer=null;}
+  if(windowProgressTimer){clearInterval(windowProgressTimer);windowProgressTimer=null;}
+  windowState='silence';
+  setWindowUI('silence',0,windowQueue.length);
+}
+
+function runWindowSilence(){
+  windowState='silence';
+  const secs=parseInt(document.getElementById('windowSilence').value,10)||30;
+  setWindowUI('silence',0,windowQueue.length);
+  animateProgress(secs,'#444');
+  windowTimer=setTimeout(()=>{runWindowOpen();},secs*1000);
+}
+
+function runWindowOpen(){
+  windowState='open';
+  const openSecs=parseInt(document.getElementById('windowOpen').value,10)||8;
+  const pickN=parseInt(document.getElementById('windowPickN').value,10)||1;
+  setWindowUI('open',0,windowQueue.length);
+  animateProgress(openSecs,'#e535ab');
+  // Берём N самых интересных из очереди
+  pickAndReact(pickN);
+  windowTimer=setTimeout(()=>{runWindowSilence();},openSecs*1000);
+}
+
+function setWindowUI(state,prog,count){
+  const label=document.getElementById('windowStateLabel');
+  const countLabel=document.getElementById('windowCountLabel');
+  if(state==='silence'){
+    label.textContent='😶 Алина молчит, копит чат...';
+    label.style.color='#555';
+    document.getElementById('windowProgressBar').style.background='#333';
+  } else {
+    label.textContent='💅 Алина отвечает!';
+    label.style.color='#e535ab';
+    document.getElementById('windowProgressBar').style.background='#e535ab';
+  }
+  countLabel.textContent=count+' в очереди';
+}
+
+function animateProgress(totalSecs,color){
+  if(windowProgressTimer)clearInterval(windowProgressTimer);
+  const bar=document.getElementById('windowProgressBar');
+  bar.style.width='0%';bar.style.background=color;
+  let elapsed=0;
+  const step=200;
+  windowProgressTimer=setInterval(()=>{
+    elapsed+=step;
+    const pct=Math.min(100,Math.round(elapsed/totalSecs/10));
+    bar.style.width=pct+'%';
+    document.getElementById('windowCountLabel').textContent=windowQueue.length+' в очереди';
+    if(elapsed>=totalSecs*1000){clearInterval(windowProgressTimer);windowProgressTimer=null;}
+  },step);
+}
+
+async function pickAndReact(n){
+  if(!windowQueue.length)return;
+  // Алина сама выбирает самое интересное — спрашиваем AI
+  const items=windowQueue.splice(0,Math.min(windowQueue.length,20));
+  windowQueue=[];
+  const pickCount=Math.min(n,items.length);
+  let chosen=[];
+  if(items.length<=pickCount){
+    chosen=items;
+  } else {
+    // Просим AI выбрать самое провокационное
+    const listStr=items.map((it,i)=>`${i}. ${it.author}: "${it.text.slice(0,60)}"`).join('\n');
+    const pickPrompt=`Вот сообщения из Twitch чата:\n${listStr}\n\nВыбери ${pickCount} номер(а) сообщений которые тебе интереснее всего прокомментировать (самые смешные, провокационные или те на которые есть что ответить). Ответь ТОЛЬКО номерами через запятую, например: 2,5`;
+    const ans=await callGroq(pickPrompt,buildSystem('Выбери индексы сообщений для реакции.'),30);
+    if(ans){
+      const indices=ans.match(/\d+/g)||[];
+      indices.slice(0,pickCount).forEach(idx=>{
+        const i=parseInt(idx);
+        if(items[i])chosen.push(items[i]);
+      });
+    }
+    if(!chosen.length)chosen=items.slice(0,pickCount);
+  }
+  // Реагируем на выбранные
+  for(const it of chosen){
+    const sid=addSidebarItem(it.author,it.text,it.color,null);
+    processMsgReact(it.author,it.text,it.color,sid);
+  }
+}
+
+// Реакция на конкретное сообщение (без кулдауна — в окне режиме управляет цикл)
+function processMsgReact(author,text,color,sid){
+  const s=getStreamer(),r=getRival();
+  const isStreamer=author.toLowerCase()===s.toLowerCase();
+  const isRival=r&&author.toLowerCase()===r.toLowerCase();
+  let ctx='';
+  if(isStreamer){ctx=`${s} написал: "${text}". Отреагируй — флирт или подначивание.`;}
+  else if(isRival){const flip=Math.random()>0.5;ctx=flip?`${r} написала: "${text}". Наедь соперница.`:`${r} написала: "${text}". Флиртуй с ней назло ${s}у.`;}
+  else if(currentTarget&&author===currentTarget){ctx=`ЖЕРТВА ${author}: "${text}". Конкретная шпилька.`;}
+  else{ctx=`Зритель ${author}: "${text}". Прокомментируй в стиле: ${getActivity()}.`;}
+  callGroq(text,buildSystem(ctx),85).then(ans=>{
+    if(!ans)return;
+    addMemory('Алина про '+author+': "'+ans.slice(0,50)+'"');
+    updateSidebarComment(sid,ans);
+    const rn=document.getElementById('readNick').checked;
+    if(rn){enqueueNickThenAnswer(author,ans,sid);}
+    else{enqueueComment(ans,sid);}
+  });
+}
+
 
 // ── CONNECT ───────────────────────────────────────────────────────
 function toggleConnect(){connected?doDisconnect():doConnect();}
@@ -479,6 +791,7 @@ function doConnect(){
       addSys('💅 Алина заступила на смену...');
       addMemory('Стрим начался. Активность: '+getActivity());
       startAnalyzeTimer();
+      if(chatMode==='window')startWindowCycle();
       // Автоматически запускаем микрофон
       initMicAndSTT();
     }
@@ -489,6 +802,7 @@ function doDisconnect(){
   connected=false;commentCooldown=false;pendingItem=null;
   if(cooldownInterval){clearInterval(cooldownInterval);cooldownInterval=null;}
   if(analyzeTimer){clearInterval(analyzeTimer);analyzeTimer=null;}
+  stopWindowCycle();windowQueue=[];
   stopMicAndSTT();
   setStatus('off','Отключено');resetConnectBtn();
 }
@@ -524,13 +838,45 @@ function handleMsg(author,text,color){
   addMemory(author+': "'+text.slice(0,50)+'"');
   addMsgToFeed(author,text,color,isCmd);
 
-  if(commentCooldown){
-    const sid=addSidebarQueued(author,text,color,isCmd);
-    if(pendingItem){const o=document.getElementById(pendingItem.sid);if(o){const q=o.querySelector('.q-lbl');if(q)q.textContent='(пропущено)';}}
-    pendingItem={author,text,color,isCmd,sid};
+  // Команда !алина — всегда отвечаем немедленно независимо от режима
+  if(isCmd){
+    const sid=addSidebarItem(author,text,color,'ai');
+    const q=text.slice(trigger.length).trim();
+    if(!q)return;
+    const ctx=`Зритель ${author} напрямую обращается к тебе: "${q}". Ответь в своём стиле.`;
+    callGroq(q,buildSystem(ctx),120).then(ans=>{
+      if(!ans)return;
+      addMemory('Алина ответила '+author);
+      updateSidebarComment(sid,ans);updateLastAiReply(ans);
+      const rn=document.getElementById('readNick').checked;
+      const rm=document.getElementById('readMsg').checked;
+      if(rm)enqueueSpeak(author+' спрашивает: '+q,null);
+      if(rn){enqueueNickThenAnswer(author,ans,sid);}
+      else{enqueueSpeak(ans,sid);}
+      if(chatMode==='every')startCooldown();
+    });
     return;
   }
-  processMsgNow(author,text,color,isCmd,autoComment);
+
+  // Режим: только по команде
+  if(chatMode==='manual')return;
+
+  // Режим: окно — складываем в очередь, цикл сам разберётся
+  if(chatMode==='window'){
+    windowQueue.push({author,text,color});
+    document.getElementById('windowCountLabel').textContent=windowQueue.length+' в очереди';
+    return;
+  }
+
+  // Режим: каждое сообщение
+  if(!autoComment)return;
+  if(commentCooldown){
+    const sid=addSidebarQueued(author,text,color,false);
+    if(pendingItem){const o=document.getElementById(pendingItem.sid);if(o){const q=o.querySelector('.q-lbl');if(q)q.textContent='(пропущено)';}}
+    pendingItem={author,text,color,isCmd:false,sid};
+    return;
+  }
+  processMsgNow(author,text,color,false,autoComment);
 }
 
 function processMsgNow(author,text,color,isCmd,autoComment){
@@ -1125,6 +1471,14 @@ function processNextSpeech(){
   if(!item){isSpeaking=false;setWave(false);return;}
   isSpeaking=true;setWave(true);
   if(item.sid)markSpeaking(item.sid,true);
+
+  if(voiceEngine==='elevenlabs'){
+    // ElevenLabs — pauseAfter не нужен (ник через отдельный вызов)
+    speakElevenLabs(item.text,item.sid);
+    return;
+  }
+
+  // Браузерный TTS
   const utt=new SpeechSynthesisUtterance(item.text);
   const v=voices.find(x=>x.name===document.getElementById('voiceSelect').value);
   if(v)utt.voice=v;
