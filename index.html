@@ -303,7 +303,6 @@ footer a{color:#e535ab;text-decoration:none}
         <div id="windowProgressBar" style="height:100%;width:0%;border-radius:3px;transition:width .5s linear;background:#333"></div>
       </div>
     </div>
-    <!-- Кнопка выбора сообщения из очереди -->
     <div style="margin-top:8px;font-size:11px;color:#555">
       Алина сама выбирает на что ответить — берёт самое смешное/провокационное из очереди
     </div>
@@ -354,7 +353,7 @@ footer a{color:#e535ab;text-decoration:none}
       </div>
     </div>
     <div>
-      <!-- Статус микрофона — всегда активен после подключения -->
+      <!-- Статус микрофона -->
       <div style="font-size:11px;color:#888;margin-bottom:8px;font-weight:600;text-transform:uppercase;letter-spacing:.06em">🎤 Голос (авто)</div>
       <div style="background:#0a0a0d;border:1px solid #1a1a22;border-radius:8px;padding:9px;margin-bottom:9px">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px">
@@ -564,7 +563,6 @@ async function callGroq(userMsg, sysOverride, maxTok, imageBase64){
   if(!key){addSys('⚠️ Введи Groq API ключ!');return null;}
   try{
     let content=userMsg;
-    // Groq vision через llava если есть картинка
     const model = imageBase64 ? 'meta-llama/llama-4-scout-17b-16e-instruct' : 'llama-3.3-70b-versatile';
     if(imageBase64){
       content=[
@@ -608,8 +606,7 @@ function trackChatter(author,text){
 }
 
 // ── ГОЛОСА ────────────────────────────────────────────────────────
-// ── ГОЛОС: движок ────────────────────────────────────────────────
-let voiceEngine='browser'; // 'browser' | 'elevenlabs'
+let voiceEngine='browser';
 let elAudioQueue=[], elPlaying=false;
 
 function setEngine(eng){
@@ -627,11 +624,9 @@ document.getElementById('screenAudioToggle').onchange=applyScreenAudioState;
 applyScreenAudioState();
 applyBranding();
 
-// ── ГОЛОС: браузер ────────────────────────────────────────────────
 function loadVoices(){
   voices=window.speechSynthesis.getVoices();
   const sel=document.getElementById('voiceSelect');sel.innerHTML='';
-  // Сначала женские русские, потом остальные
   const femaleRu=voices.filter(v=>v.lang.startsWith('ru')&&/irin|sveta|milena|katya|alena|oksana|nadia|julia|anna|female|женщ/i.test(v.name));
   const allRu=voices.filter(v=>v.lang.startsWith('ru')&&!femaleRu.includes(v));
   const oth=voices.filter(v=>!v.lang.startsWith('ru'));
@@ -646,14 +641,12 @@ function loadVoices(){
     g.list.forEach(v=>{const o=document.createElement('option');o.value=v.name;o.textContent=v.name+' ('+v.lang+')';og.appendChild(o);});
     sel.appendChild(og);
   });
-  // Автовыбор женского если есть
   const firstFemale=femaleRu[0]||allRu[0];
   if(firstFemale)sel.value=firstFemale.name;
 }
 window.speechSynthesis.onvoiceschanged=loadVoices;loadVoices();
 document.getElementById('volRange').oninput=function(){document.getElementById('volVal').textContent=Math.round(this.value*100)+'%';};
 
-// ── ГОЛОС: ElevenLabs ─────────────────────────────────────────────
 async function speakElevenLabs(text, sid){
   const key=document.getElementById('elKey').value.trim();
   if(!key){document.getElementById('elStatus').textContent='⚠️ Введи API ключ ElevenLabs';return;}
@@ -695,9 +688,9 @@ async function speakElevenLabs(text, sid){
 }
 
 // ── РЕЖИМ ЧАТА ────────────────────────────────────────────────────
-let chatMode='every'; // 'every' | 'window' | 'manual'
-let windowQueue=[]; // очередь сообщений в режиме окна
-let windowState='silence'; // 'silence' | 'open'
+let chatMode='every';
+let windowQueue=[];
+let windowState='silence';
 let windowTimer=null, windowProgress=0, windowProgressTimer=null;
 
 function setChatMode(mode){
@@ -735,7 +728,6 @@ function runWindowOpen(){
   const pickN=parseInt(document.getElementById('windowPickN').value,10)||1;
   setWindowUI('open',0,windowQueue.length);
   animateProgress(openSecs,'#e535ab');
-  // Берём N самых интересных из очереди
   pickAndReact(pickN);
   windowTimer=setTimeout(()=>{runWindowSilence();},openSecs*1000);
 }
@@ -772,7 +764,6 @@ function animateProgress(totalSecs,color){
 
 async function pickAndReact(n){
   if(!windowQueue.length)return;
-  // Алина сама выбирает самое интересное — спрашиваем AI
   const items=windowQueue.splice(0,Math.min(windowQueue.length,20));
   windowQueue=[];
   const pickCount=Math.min(n,items.length);
@@ -780,7 +771,6 @@ async function pickAndReact(n){
   if(items.length<=pickCount){
     chosen=items;
   } else {
-    // Просим AI выбрать самое провокационное
     const listStr=items.map((it,i)=>`${i}. ${it.author}: "${it.text.slice(0,60)}"`).join('\n');
     const pickPrompt=`Вот сообщения из Twitch чата:\n${listStr}\n\nВыбери ${pickCount} номер(а) сообщений которые тебе интереснее всего прокомментировать (самые смешные, провокационные или те на которые есть что ответить). Ответь ТОЛЬКО номерами через запятую, например: 2,5`;
     const ans=await callGroq(pickPrompt,buildSystem('Выбери индексы сообщений для реакции.'),30);
@@ -793,14 +783,12 @@ async function pickAndReact(n){
     }
     if(!chosen.length)chosen=items.slice(0,pickCount);
   }
-  // Реагируем на выбранные
   for(const it of chosen){
     const sid=addSidebarItem(it.author,it.text,it.color,null);
     processMsgReact(it.author,it.text,it.color,sid);
   }
 }
 
-// Реакция на конкретное сообщение (без кулдауна — в окне режиме управляет цикл)
 function processMsgReact(author,text,color,sid){
   const s=getStreamer(),r=getRival();
   const isStreamer=author.toLowerCase()===s.toLowerCase();
@@ -809,8 +797,8 @@ function processMsgReact(author,text,color,sid){
   if(isStreamer){ctx=`${s} написал: "${text}". Отреагируй — флирт или подначивание.`;}
   else if(isRival){const flip=Math.random()>0.5;ctx=flip?`${r} написала: "${text}". Наедь соперница.`:`${r} написала: "${text}". Флиртуй с ней назло ${s}у.`;}
   else if(currentTarget&&author===currentTarget){ctx=`ЖЕРТВА ${author}: "${text}". Конкретная шпилька.`;}
-   else{ctx=`Зритель ${author}: "${text}". Прокомментируй в стиле: ${getActivity()}.`;}
-   callGroq(text,buildSystem(ctx),85).then(ans=>{
+  else{ctx=`Зритель ${author}: "${text}". Прокомментируй в стиле: ${getActivity()}.`;}
+  callGroq(text,buildSystem(ctx),85).then(ans=>{
     if(!ans){updateSidebarComment(sid,'');return;}
     addMemory('Алина про '+author+': "'+ans.slice(0,50)+'"');
     updateSidebarComment(sid,ans);
@@ -820,14 +808,21 @@ function processMsgReact(author,text,color,sid){
   });
 }
 
-
 // ── CONNECT ───────────────────────────────────────────────────────
 function toggleConnect(){connected?doDisconnect():doConnect();}
+
 function doConnect(){
   const ch=document.getElementById('channel').value.trim().toLowerCase();
   if(!ch){alert('Введи канал!');return;}
   if(!getKey()){alert('Введи Groq API ключ!');return;}
   setStatus('connecting','Подключение к #'+ch+'...');
+
+  // ── ИСПРАВЛЕНИЕ 1: запрашиваем микрофон ДО WebSocket,
+  //    пока страница точно в состоянии user-gesture и браузер
+  //    не успел перевести AudioContext в suspended.
+  //    Сохраняем промис — он выполнится параллельно с WS.
+  const micPromise = initMicAndSTT();
+
   ws=new WebSocket('wss://irc-ws.chat.twitch.tv:443');
   ws.onopen=()=>{
     ws.send('CAP REQ :twitch.tv/tags twitch.tv/commands');
@@ -838,9 +833,17 @@ function doConnect(){
   ws.onmessage=e=>{if(e.data.includes('PING')){ws.send('PONG :tmi.twitch.tv');return;}parseIRC(e.data);};
   ws.onerror=()=>setStatus('error','Ошибка подключения');
   ws.onclose=()=>{if(connected){connected=false;setStatus('off','Отключено');resetConnectBtn();}};
-  setTimeout(()=>{
+
+  // ── ИСПРАВЛЕНИЕ 2: ждём И WebSocket И микрофон,
+  //    с повторными попытками каждые 300 мс (до 10 сек).
+  let attempts=0;
+  const maxAttempts=33; // ~10 сек
+  const checkInterval=setInterval(()=>{
+    attempts++;
     if(ws&&ws.readyState===1){
-      connected=true;setStatus('live','Подключено к #'+ch);
+      clearInterval(checkInterval);
+      connected=true;
+      setStatus('live','Подключено к #'+ch);
       document.getElementById('connectBtn').textContent='Отключиться';
       document.getElementById('connectBtn').classList.add('on');
       document.getElementById('feed').innerHTML='';
@@ -849,11 +852,19 @@ function doConnect(){
       addMemory('Стрим начался. Активность: '+getActivity());
       startAnalyzeTimer();
       if(chatMode==='window')startWindowCycle();
-      // Автоматически запускаем микрофон
-      initMicAndSTT();
+      // Микрофон уже запущен (micPromise), просто логируем результат
+      micPromise.then(ok=>{
+        if(!ok) addSys('⚠️ Микрофон не запустился — проверь разрешения браузера');
+      });
+    } else if(attempts>=maxAttempts){
+      clearInterval(checkInterval);
+      if(!connected){
+        addSys('⚠️ WebSocket не подключился за 10 сек. Попробуй снова.');
+      }
     }
-  },1500);
+  },300);
 }
+
 function doDisconnect(){
   if(ws){ws.close();ws=null;}
   connected=false;commentCooldown=false;pendingItem=null;
@@ -895,7 +906,6 @@ function handleMsg(author,text,color){
   addMemory(author+': "'+text.slice(0,50)+'"');
   addMsgToFeed(author,text,color,isCmd);
 
-  // Команда !алина — всегда отвечаем немедленно независимо от режима
   if(isCmd){
     const sid=addSidebarItem(author,text,color,'ai');
     const q=text.slice(trigger.length).trim();
@@ -906,11 +916,7 @@ function handleMsg(author,text,color){
     }
     const ctx=`Зритель ${author} напрямую обращается к тебе: "${q}". Ответь в своём стиле.`;
     callGroq(q,buildSystem(ctx),120).then(ans=>{
-      if(!ans){
-        updateSidebarComment(sid,'');
-        updateLastAiReply('');
-        return;
-      }
+      if(!ans){updateSidebarComment(sid,'');updateLastAiReply('');return;}
       addMemory('Алина ответила '+author);
       updateSidebarComment(sid,ans);updateLastAiReply(ans);
       const rn=document.getElementById('readNick').checked;
@@ -923,17 +929,14 @@ function handleMsg(author,text,color){
     return;
   }
 
-  // Режим: только по команде
   if(chatMode==='manual')return;
 
-  // Режим: окно — складываем в очередь, цикл сам разберётся
   if(chatMode==='window'){
     windowQueue.push({author,text,color});
     document.getElementById('windowCountLabel').textContent=windowQueue.length+' в очереди';
     return;
   }
 
-  // Режим: каждое сообщение
   if(!autoComment)return;
   if(commentCooldown){
     const sid=addSidebarQueued(author,text,color,false);
@@ -955,11 +958,7 @@ function processMsgNow(author,text,color,isCmd,autoComment,existingSid){
     if(!q){updateSidebarComment(sid,'После команды нет текста вопроса. Напиши что-то после триггера.');return;}
     const ctx=`Зритель ${author} напрямую обращается к тебе с вопросом: "${q}". Ответь в своём стиле.`;
     callGroq(q,buildSystem(ctx),120).then(ans=>{
-      if(!ans){
-        updateSidebarComment(sid,'');
-        updateLastAiReply('');
-        return;
-      }
+      if(!ans){updateSidebarComment(sid,'');updateLastAiReply('');return;}
       addMemory('Алина ответила '+author);
       updateSidebarComment(sid,ans);updateLastAiReply(ans);
       const rn=document.getElementById('readNick').checked;
@@ -1022,7 +1021,6 @@ async function fireEvent(type){
 
 async function alinaInsider(){
   const s=getStreamer();
-  const mem=streamMemory.slice(-8).join('; ');
   const insiders=[
     `Чатик, я бы рассказала что ${s} делал за 5 минут до стрима, но эта обезьяна меня отключит`,
     `Между прочим я знаю кое-что про ${s} — но если скажу, то он мне урежет оперативку`,
@@ -1105,15 +1103,12 @@ async function alinaRoastTarget(){
 }
 
 async function alinaInterrupt(){
-  const canInt=document.getElementById('canInterrupt').checked;
-  const s=getStreamer();
   const recentMem=streamMemory.slice(-5).join('; ');
   const ctx=`Перебей стримеров и вставь свою реплику — можешь поспорить, подначить, сказать что-то невпопад. Последнее что происходило: ${recentMem}. 1-2 предложения, дерзко.`;
   const ans=await callGroq('interrupt',buildSystem(ctx),100);
   if(!ans)return;
   addMemory('Алина: перебила стримеров');
   const sid=addSidebarEvent('Алина','insight',ans);
-  // Перебивание — в приоритетную очередь
   mainQueue.unshift({text:ans,sidebarId:sid});
   if(!isSpeaking)processNextSpeech();
 }
@@ -1124,9 +1119,7 @@ async function toggleScreen(){
   if(screenStream){
     screenStream.getTracks().forEach(t=>t.stop());
     screenStream=null;
-    vid.pause();
-    vid.srcObject=null;
-    vid.muted=true;
+    vid.pause();vid.srcObject=null;vid.muted=true;
     document.getElementById('screenLabel').textContent='нет захвата';
     document.getElementById('screenBtn').textContent='📺 Захватить экран';
     document.getElementById('screenBtn').classList.remove('active');
@@ -1144,16 +1137,10 @@ async function toggleScreen(){
     document.getElementById('screenBtn').classList.add('active');
     document.getElementById('analyzeBtn').style.display='block';
     const hasAudio=screenStream.getAudioTracks().length>0&&screenStream.getAudioTracks()[0].enabled;
-    if(hasAudio){
-      addSys('✅ Экран + звук захвачены. Звук будет слышно если включить спикеры/наушники.');
-    } else {
-      addSys('⚠️ Эхран без звука. Если нужен звук — переподключись и в окне выбора экрана выбери "Включить звук".');
-    }
+    if(hasAudio){addSys('✅ Экран + звук захвачены.');}
+    else{addSys('⚠️ Экран без звука. Переподключись и выбери "Включить звук".');}
     screenStream.getVideoTracks()[0].onended=()=>{
-      screenStream=null;
-      vid.pause();
-      vid.srcObject=null;
-      vid.muted=true;
+      screenStream=null;vid.pause();vid.srcObject=null;vid.muted=true;
       document.getElementById('screenLabel').textContent='нет захвата';
       document.getElementById('screenBtn').textContent='📺 Захватить экран';
       document.getElementById('screenBtn').classList.remove('active');
@@ -1168,14 +1155,11 @@ let recognition=null, sttActive=false;
 let sttLangs=['ru-RU','en-US','uk-UA'];
 let sttLangIdx=0;
 let sttLastText='', sttDebounce=null;
-let sttLastSpeaker='unknown'; // 'male' | 'female' | 'unknown'
-let sttSpeakerHistory=[]; // последние N определений пола для сглаживания
-// Pitch detection через AudioContext
+let sttLastSpeaker='unknown';
+let sttSpeakerHistory=[];
 let audioCtx=null, micSource=null, pitchAnalyser=null, pitchAnimFrame=null;
 let micStream=null;
-// Время последней реакции Алины на голос — чтоб не спамила
 let lastVoiceReactTime=0;
-// Накопленный текст по спикерам за текущую «сессию» разговора
 let sessionBuffer={male:'',female:''};
 
 document.getElementById('spontanChance').oninput=function(){
@@ -1189,16 +1173,24 @@ function cycleLang(){
   if(sttActive){stopSTT();startSTT();}
 }
 
-// Вызывается при подключении к каналу — запускает микрофон автоматически
+// ── ИСПРАВЛЕНИЕ 3: initMicAndSTT теперь возвращает Promise<bool>
+//    и содержит resume() для AudioContext (политика автозапуска)
 async function initMicAndSTT(){
+  // Если микрофон уже запущен — не дублируем
+  if(micStream){return true;}
   try{
+    setMicStatus('active','Запрашиваю доступ к микрофону...');
     micStream=await navigator.mediaDevices.getUserMedia({audio:true,video:false});
-    setupPitchDetector();
+    // ── ИСПРАВЛЕНИЕ 4: resume AudioContext сразу после получения потока
+    //    (браузер может создать его в suspended, если не было жеста)
+    await setupPitchDetector();
     startSTT();
     setMicStatus('active','Слушаю...');
+    return true;
   }catch(e){
     setMicStatus('error','Нет доступа к микрофону: '+e.message);
-    addSys('⚠️ Микрофон недоступен: '+e.message);
+    addSys('⚠️ Микрофон: '+e.message+'. Разреши доступ в браузере и переподключись.');
+    return false;
   }
 }
 
@@ -1206,7 +1198,7 @@ function stopMicAndSTT(){
   stopSTT();
   if(pitchAnimFrame){cancelAnimationFrame(pitchAnimFrame);pitchAnimFrame=null;}
   if(micStream){micStream.getTracks().forEach(t=>t.stop());micStream=null;}
-  if(audioCtx){audioCtx.close();audioCtx=null;}
+  if(audioCtx){audioCtx.close().catch(()=>{});audioCtx=null;}
   setMicStatus('off','Отключено');
 }
 
@@ -1215,26 +1207,26 @@ function setMicStatus(state,text){
   const txt=document.getElementById('micStatusText');
   const colors={active:'#1db954',listening:'#e535ab',error:'#f59e0b',off:'#333'};
   dot.style.background=colors[state]||'#333';
-  if(state==='active'||state==='listening'){
-    dot.style.animation='pulse 1.5s infinite';
-  } else {dot.style.animation='none';}
+  dot.style.animation=(state==='active'||state==='listening')?'pulse 1.5s infinite':'none';
   txt.textContent=text;
   txt.style.color=state==='error'?'#f59e0b':'#888';
 }
 
-// ── PITCH DETECTOR (определяет высоту голоса → пол) ──────────────
-function setupPitchDetector(){
+// ── PITCH DETECTOR ────────────────────────────────────────────────
+// ── ИСПРАВЛЕНИЕ 5: функция стала async и вызывает audioCtx.resume()
+async function setupPitchDetector(){
   audioCtx=new AudioContext();
+  // Обязательно resume — Chrome блокирует AudioContext без жеста пользователя
+  if(audioCtx.state==='suspended'){
+    await audioCtx.resume();
+  }
   micSource=audioCtx.createMediaStreamSource(micStream);
   pitchAnalyser=audioCtx.createAnalyser();
   pitchAnalyser.fftSize=2048;
   micSource.connect(pitchAnalyser);
 
-  const bufLen=pitchAnalyser.fftSize;
-  const floatBuf=new Float32Array(bufLen);
+  const floatBuf=new Float32Array(pitchAnalyser.fftSize);
   const freqBuf=new Uint8Array(pitchAnalyser.frequencyBinCount);
-
-  // Скользящее среднее питча для сглаживания
   let pitchHistory=[];
 
   function detectPitch(){
@@ -1242,27 +1234,22 @@ function setupPitchDetector(){
     pitchAnalyser.getFloatTimeDomainData(floatBuf);
     pitchAnalyser.getByteFrequencyData(freqBuf);
 
-    // Уровень громкости
     const vol=freqBuf.reduce((a,b)=>a+b,0)/freqBuf.length;
     const volPct=Math.min(100,Math.round(vol/128*100));
     document.getElementById('pitchBar').style.width=volPct+'%';
 
     if(vol<8){
-      // Тишина
       document.getElementById('speakerBadge').textContent='—';
       document.getElementById('speakerBadge').style.color='#333';
       return;
     }
 
-    // YIN-like autocorrelation для определения основного тона
     const pitch=autoCorrelate(floatBuf,audioCtx.sampleRate);
     if(pitch>0){
       pitchHistory.push(pitch);
       if(pitchHistory.length>12)pitchHistory.shift();
       const avgPitch=pitchHistory.reduce((a,b)=>a+b)/pitchHistory.length;
 
-      // Женский голос: 160–300 Гц, мужской: 80–165 Гц
-      // Порог ~165 Гц — между мужским и женским диапазоном
       let gender='unknown';
       if(avgPitch>=160){gender='female';}
       else if(avgPitch>=80&&avgPitch<160){gender='male';}
@@ -1270,7 +1257,6 @@ function setupPitchDetector(){
       if(gender!=='unknown'){
         sttSpeakerHistory.push(gender);
         if(sttSpeakerHistory.length>8)sttSpeakerHistory.shift();
-        // Голосование большинства для стабильности
         const maleCount=sttSpeakerHistory.filter(g=>g==='male').length;
         const femaleCount=sttSpeakerHistory.filter(g=>g==='female').length;
         if(maleCount>femaleCount){sttLastSpeaker='male';}
@@ -1282,9 +1268,7 @@ function setupPitchDetector(){
           badge.textContent='👨 '+s;
           badge.style.color='#7aafff';
         } else {
-          // Если есть имя соперницы — показываем его, иначе "женский голос"
-          const femName=r||'Женский голос';
-          badge.textContent='👩 '+femName;
+          badge.textContent='👩 '+(r||'Женский голос');
           badge.style.color='#ff9adf';
         }
       }
@@ -1293,13 +1277,12 @@ function setupPitchDetector(){
   detectPitch();
 }
 
-// Autocorrelation pitch detection
 function autoCorrelate(buf,sampleRate){
   let SIZE=buf.length;
   let rms=0;
   for(let i=0;i<SIZE;i++)rms+=buf[i]*buf[i];
   rms=Math.sqrt(rms/SIZE);
-  if(rms<0.01)return -1; // тишина
+  if(rms<0.01)return -1;
 
   let r1=0,r2=SIZE-1;
   for(let i=0;i<SIZE/2;i++){if(Math.abs(buf[i])<0.2){r1=i;break;}}
@@ -1360,13 +1343,11 @@ function startSTT(){
       const speakerName=resolveSpeakerName(sttLastSpeaker);
       addSTTLine(speakerName,sttLastSpeaker,final.trim());
 
-      // Накапливаем в буфер по полу
       if(sttLastSpeaker==='male')sessionBuffer.male=(sessionBuffer.male+' '+final).trim().slice(-300);
       else if(sttLastSpeaker==='female')sessionBuffer.female=(sessionBuffer.female+' '+final).trim().slice(-300);
 
       setMicStatus('active','Слушаю...');
 
-      // Логика: перебивать или нет?
       const canInt=document.getElementById('sttInterrupt').checked;
       if(isSpeaking&&!canInt)return;
       if(isSpeaking&&canInt){
@@ -1376,7 +1357,6 @@ function startSTT(){
 
       clearTimeout(sttDebounce);
       sttLastText=(sttLastText+' '+final).trim();
-      // Дебаунс 800мс — ждём паузы в речи
       sttDebounce=setTimeout(()=>{
         const phrase=sttLastText;
         const speaker=sttLastSpeaker;
@@ -1392,9 +1372,12 @@ function startSTT(){
   recognition.onerror=e=>{
     if(e.error==='no-speech'||e.error==='aborted')return;
     setMicStatus('error','Ошибка: '+e.error);
+    // ── ИСПРАВЛЕНИЕ 6: при ошибке not-allowed показываем понятное сообщение
+    if(e.error==='not-allowed'){
+      addSys('🚫 Доступ к микрофону запрещён. Нажми на иконку замка в адресной строке и разреши микрофон.');
+    }
   };
 
-  // Перезапуск — Chrome убивает распознавание в тишине
   recognition.onend=()=>{if(sttActive){setTimeout(()=>{if(sttActive)recognition.start();},200);}};
 
   recognition.start();
@@ -1445,13 +1428,10 @@ async function reactToSpeech(phrase,gender){
   const isMale=gender==='male';
   const isFemale=gender==='female';
 
-  // Умная логика — решаем реагировать или нет
   const now=Date.now();
   const spontanChance=parseInt(document.getElementById('spontanChance').value,10)/100;
   const timeSinceLast=(now-lastVoiceReactTime)/1000;
 
-  // Если реагируем на каждую фразу — всегда отвечаем
-  // Если нет — случайный шанс, но не чаще чем раз в 20 сек
   if(!document.getElementById('sttAutoReply').checked){
     if(timeSinceLast<20)return;
     if(Math.random()>spontanChance)return;
@@ -1459,19 +1439,13 @@ async function reactToSpeech(phrase,gender){
 
   lastVoiceReactTime=now;
 
-  // Контекст зависит от кто говорит
   let ctx='';
   if(isMale&&s){
-    ctx=`${s} (мужчина, стример) только что сказал: "${phrase}".
-Алина слышит его и реагирует — может флиртануть, поддеть, поспорить или поддержать.
-Говори как будто стоишь рядом, вживую.`;
+    ctx=`${s} (мужчина, стример) только что сказал: "${phrase}". Алина слышит его и реагирует — может флиртануть, поддеть, поспорить или поддержать. Говори как будто стоишь рядом, вживую.`;
   } else if(isFemale&&r){
-    ctx=`${r} (женщина, соведущая) только что сказала: "${phrase}".
-Алина слышит её. Помни: ${r} — соперница Алины за внимание ${s||'стримера'}.
-Можешь наехать, ревновать, или неожиданно начать с ней заигрывать.`;
+    ctx=`${r} (женщина, соведущая) только что сказала: "${phrase}". Алина слышит её. Помни: ${r} — соперница Алины за внимание ${s||'стримера'}. Можешь наехать, ревновать, или неожиданно начать с ней заигрывать.`;
   } else if(isFemale){
-    ctx=`Женский голос только что сказал: "${phrase}".
-Алина слышит её и реагирует — с лёгким соперничеством.`;
+    ctx=`Женский голос только что сказал: "${phrase}". Алина слышит её и реагирует — с лёгким соперничеством.`;
   } else {
     ctx=`На стриме только что сказали: "${phrase}". Отреагируй коротко.`;
   }
@@ -1500,15 +1474,13 @@ function startAnalyzeTimer(){
 async function analyzeStream(){
   if(!screenStream||!connected)return;
   const now=Date.now();
-  if(now-lastAnalyzeTime<15000)return; // не чаще раза в 15 сек
+  if(now-lastAnalyzeTime<15000)return;
   lastAnalyzeTime=now;
-  // Захватываем кадр с экрана
   try{
     if(!screenCanvas)screenCanvas=document.createElement('canvas');
     const vid=document.getElementById('screenVideo');
     if(!vid.videoWidth)return;
-    screenCanvas.width=640;
-    screenCanvas.height=360;
+    screenCanvas.width=640;screenCanvas.height=360;
     const ctx2=screenCanvas.getContext('2d');
     ctx2.drawImage(vid,0,0,640,360);
     const b64=screenCanvas.toDataURL('image/jpeg',0.6).split(',')[1];
@@ -1552,7 +1524,6 @@ function startCooldown(){
 // ── TTS ───────────────────────────────────────────────────────────
 function enqueueSpeak(text,sid){mainQueue.push({text,sid});if(!isSpeaking)processNextSpeech();}
 function enqueueNickThenAnswer(nick,answer,sid){
-  // Произносит НИК отдельным utterance — реальная пауза — потом ответ
   mainQueue.push({text:nick,sid:null,pauseAfter:350});
   mainQueue.push({text:answer,sid});
   if(!isSpeaking)processNextSpeech();
@@ -1565,12 +1536,10 @@ function processNextSpeech(){
   if(item.sid)markSpeaking(item.sid,true);
 
   if(voiceEngine==='elevenlabs'){
-    // ElevenLabs — pauseAfter не нужен (ник через отдельный вызов)
     speakElevenLabs(item.text,item.sid);
     return;
   }
 
-  // Браузерный TTS
   const utt=new SpeechSynthesisUtterance(item.text);
   const v=voices.find(x=>x.name===document.getElementById('voiceSelect').value);
   if(v)utt.voice=v;
@@ -1654,10 +1623,7 @@ function addMsgToFeed(author,text,color,isCmd){
 }
 function updateLastAiReply(ans){
   if(!lastAiBox)return;
-  if(!ans||ans.trim()===''){
-    lastAiBox.style.display='none';
-    return;
-  }
+  if(!ans||ans.trim()===''){lastAiBox.style.display='none';return;}
   lastAiBox.querySelector('.ai-lbl').textContent='💭 Алина ответила';
   lastAiBox.querySelector('.ai-tx').textContent=ans;
 }
