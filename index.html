@@ -809,9 +809,9 @@ function processMsgReact(author,text,color,sid){
   if(isStreamer){ctx=`${s} написал: "${text}". Отреагируй — флирт или подначивание.`;}
   else if(isRival){const flip=Math.random()>0.5;ctx=flip?`${r} написала: "${text}". Наедь соперница.`:`${r} написала: "${text}". Флиртуй с ней назло ${s}у.`;}
   else if(currentTarget&&author===currentTarget){ctx=`ЖЕРТВА ${author}: "${text}". Конкретная шпилька.`;}
-  else{ctx=`Зритель ${author}: "${text}". Прокомментируй в стиле: ${getActivity()}.`;}
-  callGroq(text,buildSystem(ctx),85).then(ans=>{
-    if(!ans){updateSidebarComment(sid,'Не смогла ответить: Groq не вернул текст. Проверь API ключ, сеть или лимиты.');return;}
+   else{ctx=`Зритель ${author}: "${text}". Прокомментируй в стиле: ${getActivity()}.`;}
+   callGroq(text,buildSystem(ctx),85).then(ans=>{
+    if(!ans){updateSidebarComment(sid,'');return;}
     addMemory('Алина про '+author+': "'+ans.slice(0,50)+'"');
     updateSidebarComment(sid,ans);
     const rn=document.getElementById('readNick').checked;
@@ -907,8 +907,8 @@ function handleMsg(author,text,color){
     const ctx=`Зритель ${author} напрямую обращается к тебе: "${q}". Ответь в своём стиле.`;
     callGroq(q,buildSystem(ctx),120).then(ans=>{
       if(!ans){
-        updateSidebarComment(sid,'Не смогла ответить: Groq не вернул текст. Проверь API ключ, сеть или лимиты.');
-        updateLastAiReply('Не смогла ответить: проверь API ключ, сеть или лимиты Groq.');
+        updateSidebarComment(sid,'');
+        updateLastAiReply('');
         return;
       }
       addMemory('Алина ответила '+author);
@@ -956,8 +956,8 @@ function processMsgNow(author,text,color,isCmd,autoComment,existingSid){
     const ctx=`Зритель ${author} напрямую обращается к тебе с вопросом: "${q}". Ответь в своём стиле.`;
     callGroq(q,buildSystem(ctx),120).then(ans=>{
       if(!ans){
-        updateSidebarComment(sid,'Не смогла ответить: Groq не вернул текст. Проверь API ключ, сеть или лимиты.');
-        updateLastAiReply('Не смогла ответить: проверь API ключ, сеть или лимиты Groq.');
+        updateSidebarComment(sid,'');
+        updateLastAiReply('');
         return;
       }
       addMemory('Алина ответила '+author);
@@ -989,7 +989,7 @@ function processMsgNow(author,text,color,isCmd,autoComment,existingSid){
   }
 
   callGroq(text,buildSystem(ctx),85).then(ans=>{
-    if(!ans){updateSidebarComment(sid,'Не смогла ответить: Groq не вернул текст. Проверь API ключ, сеть или лимиты.');return;}
+    if(!ans){updateSidebarComment(sid,'');return;}
     addMemory('Алина про '+author+': "'+ans.slice(0,50)+'"');
     updateSidebarComment(sid,ans);
     const rn=document.getElementById('readNick').checked;
@@ -1135,7 +1135,7 @@ async function toggleScreen(){
     return;
   }
   try{
-    screenStream=await navigator.mediaDevices.getDisplayMedia({video:{frameRate:5},audio:true});
+    screenStream=await navigator.mediaDevices.getDisplayMedia({video:{frameRate:5},audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
     vid.srcObject=screenStream;
     applyScreenAudioState();
     await vid.play().catch(()=>{});
@@ -1143,11 +1143,11 @@ async function toggleScreen(){
     document.getElementById('screenBtn').textContent='🛑 Стоп экран';
     document.getElementById('screenBtn').classList.add('active');
     document.getElementById('analyzeBtn').style.display='block';
-    const hasAudio=screenStream.getAudioTracks().length>0;
+    const hasAudio=screenStream.getAudioTracks().length>0&&screenStream.getAudioTracks()[0].enabled;
     if(hasAudio){
-      addSys('🔊 Звук экрана подключён');
+      addSys('✅ Экран + звук захвачены. Звук будет слышно если включить спикеры/наушники.');
     } else {
-      addSys('⚠️ Экран захвачен без звука. В окне выбора экрана включи системный звук.');
+      addSys('⚠️ Эхран без звука. Если нужен звук — переподключись и в окне выбора экрана выбери "Включить звук".');
     }
     screenStream.getVideoTracks()[0].onended=()=>{
       screenStream=null;
@@ -1513,7 +1513,7 @@ async function analyzeStream(){
     ctx2.drawImage(vid,0,0,640,360);
     const b64=screenCanvas.toDataURL('image/jpeg',0.6).split(',')[1];
     const act=getActivity();
-    const prompt=brandText(`?? ????? � ????????? ??????????? ?? Twitch ??????. ???????? ?? ???????? ?????? (??????????: ${act}) ? ????? ???-?????? ?????????/???????/?????????????? ??? ?? ??? ??????. 1-2 ??????????? ????????.`);
+    const prompt=`На экране видно игровой процесс на Twitch стриме. Посмотри на содержимое экрана (активность: ${act}) и дай быстро-смешной комментарий о том что видишь. 1-2 предложения максимум.`;
     const ans=await callGroq(prompt,buildSystem('Реагируй на то что видишь на экране стрима.'),100,b64);
     if(!ans)return;
     addMemory('Алина увидела на экране: "'+ans.slice(0,50)+'"');
@@ -1593,7 +1593,6 @@ function addSidebarItem(author,text,color,badge){
   const div=document.createElement('div');div.className='si';div.id=id;
   const bhtml=badge?`<span class="badge ${badge}">${badge==='ai'?BOT_TRIGGER:badge}</span>`:'';
   div.innerHTML=`<div class="si-who" style="color:${color}">${esc(author)} ${bhtml}</div>
-    <div class="think">${brandText('????? ??????')}<span class="tdots"><span>.</span><span>.</span><span>.</span></span></div>
     <div class="si-orig">${esc(text.length>55?text.slice(0,55)+'…':text)}</div>`;
   sf.appendChild(div);sf.scrollTop=sf.scrollHeight;
   commentCount++;document.getElementById('commentCount').textContent=commentCount+' реплик';
@@ -1625,6 +1624,7 @@ function updateSidebarComment(id,comment){
   const item=document.getElementById(id);if(!item)return;
   const t=item.querySelector('.think');if(t)t.remove();
   const ex=item.querySelector('.si-comment');if(ex)ex.remove();
+  if(!comment||comment.trim()==='')return;
   const el=document.createElement('div');el.className='si-comment';
   el.textContent='💬 '+comment;
   item.insertBefore(el,item.querySelector('.si-orig'));
@@ -1654,7 +1654,11 @@ function addMsgToFeed(author,text,color,isCmd){
 }
 function updateLastAiReply(ans){
   if(!lastAiBox)return;
-  lastAiBox.querySelector('.ai-lbl').textContent=brandText('? ????? ????????');
+  if(!ans||ans.trim()===''){
+    lastAiBox.style.display='none';
+    return;
+  }
+  lastAiBox.querySelector('.ai-lbl').textContent='💭 Алина ответила';
   lastAiBox.querySelector('.ai-tx').textContent=ans;
 }
 function appendFeed(el){const f=document.getElementById('feed');f.appendChild(el);f.scrollTop=f.scrollHeight;}
@@ -1676,4 +1680,3 @@ function setWave(show){
 </script>
 </body>
 </html>
-
