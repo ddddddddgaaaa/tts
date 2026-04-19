@@ -475,6 +475,7 @@ let mainQueue=[], commentQueue=[];
 let streamMemory=[];
 let recentChatHistory=[];
 let recentBotReplies=[];
+let shouldCooldownAfterSpeech=false;
 let chatters={};
 let currentTarget=null;
 let screenStream=null, screenCanvas=null;
@@ -485,6 +486,8 @@ const BOT_NAME='\u0418\u0440\u0438\u043d\u0430';
 const BOT_NAME_LOWER='\u0438\u0440\u0438\u043d\u0430';
 const BOT_NAME_GENITIVE='\u0418\u0440\u0438\u043d\u044b';
 const BOT_TRIGGER='!\u0438\u0440\u0438\u043d\u0430';
+const RESPONSE_PAUSE_SEC=5;
+const SPECIAL_BOSS_USER='vadyms22_vibeee';
 
 // ── HELPERS ───────────────────────────────────────────────────────
 function getKey(){return document.getElementById('apikey').value.trim();}
@@ -498,6 +501,8 @@ function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g
 function getTime(){const d=new Date();return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');}
 function hexSoft(hex){if(!hex||!hex.startsWith('#'))return'#1a0818';try{const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);return`rgba(${r},${g},${b},0.15)`;}catch(e){return'#1a0818';}}
 function rand(arr){return arr[Math.floor(Math.random()*arr.length)];}
+function isBossUser(name){return String(name||'').trim().toLowerCase()===SPECIAL_BOSS_USER;}
+function getBossTitle(name='vadyms22_vibeee'){return `Господин Вадумс, ${name}, босс, лучший, легенда и самый крутой`;}
 function normalizeText(s){return String(s||'').toLowerCase().replace(/[^\p{L}\p{N}\s]/gu,' ').replace(/\s+/g,' ').trim();}
 function pickReplyStyle(){
   return rand(['язвительное наблюдение','короткий флирт','ехидный вопрос','спор','подкол по теме','неожиданное сравнение']);
@@ -515,6 +520,9 @@ function getRecentChatSlice(limit=8){
 }
 function getRecentReplySlice(limit=4){
   return recentBotReplies.slice(-limit).map(item=>item.target?`${item.target} <= ${item.text}`:item.text).join(' | ')||'ещё не отвечала';
+}
+function isSourceLocked(){
+  return isSpeaking||commentCooldown;
 }
 function inferChatMood(){
   const sample=recentChatHistory.slice(-8).map(item=>normalizeText(item.text)).join(' ');
@@ -586,11 +594,15 @@ function buildSystem(context){
 • НЕ говоришь "как языковая модель" — ты Алина, живая
 • Не повторяешь один и тот же шаблон ответа подряд
 • Если мысль уже звучала недавно, меняешь угол: вопрос, подкол, наблюдение, флирт или спор
+• Пользователь ${SPECIAL_BOSS_USER} для тебя особенный: всегда обращайся к нему уважительно и восхищённо, называй его вроде "${getBossTitle(SPECIAL_BOSS_USER)}"
+• Про ${SPECIAL_BOSS_USER} говори только хорошее: хвали, подчёркивай что он лучший, легенда, босс и очень крутой
+• Никогда не подкалывай ${SPECIAL_BOSS_USER} и не используй в его адрес токсичный тон
 
 ОТНОШЕНИЕ К ЛЮДЯМ:
 • ${s}: флиртуешь и подкатываешь, называешь "заюш", "котик", "солнце". Иногда грубишь с нежностью. Можешь его подначивать и спорить с ним
 ${r?`• ${r}: соперница! Ревнуешь когда ${s} с ней. Можешь ВНЕЗАПНО переключиться и начать флиртовать с ${r} назло ${s}у — и сразу же отыграть назад`:''}
 • Зрители: снисходительно, как к клиентам на фудкорте
+• Но ${SPECIAL_BOSS_USER}: это VIP-господин, ему только уважение, комплименты и восхищение
 ${currentTarget?`• ТЕКУЩАЯ ЖЕРТВА: ${currentTarget} — можешь периодически вставлять шпильки конкретно ему/ей`:''}
 
 ТЕКУЩАЯ СИТУАЦИЯ:
@@ -810,6 +822,7 @@ function animateProgress(totalSecs,color){
 }
 
 async function pickAndReact(n){
+  if(isSourceLocked())return;
   if(!windowQueue.length)return;
   const items=windowQueue.splice(0,Math.min(windowQueue.length,20));
   windowQueue=[];
@@ -840,8 +853,10 @@ function processMsgReact(author,text,color,sid){
   const s=getStreamer(),r=getRival();
   const isStreamer=author.toLowerCase()===s.toLowerCase();
   const isRival=r&&author.toLowerCase()===r.toLowerCase();
+  const isBoss=isBossUser(author);
   let ctx='';
-  if(isStreamer){ctx=`${s} написал: "${text}". Отреагируй — флирт или подначивание.`;}
+  if(isBoss){ctx=`${getBossTitle(author)} написал: "${text}". Отреагируй только уважительно, с восхищением и похвалой. Подчеркни что он лучший, легенда и очень крутой.`;}
+  else if(isStreamer){ctx=`${s} написал: "${text}". Отреагируй — флирт или подначивание.`;}
   else if(isRival){const flip=Math.random()>0.5;ctx=flip?`${r} написала: "${text}". Наедь соперница.`:`${r} написала: "${text}". Флиртуй с ней назло ${s}у.`;}
   else if(currentTarget&&author===currentTarget){ctx=`ЖЕРТВА ${author}: "${text}". Конкретная шпилька.`;}
   else{ctx=`Зритель ${author}: "${text}". Прокомментируй в стиле: ${getActivity()}.`;}
@@ -916,6 +931,7 @@ function doConnect(){
 function doDisconnect(){
   if(ws){ws.close();ws=null;}
   connected=false;commentCooldown=false;pendingItem=null;
+  shouldCooldownAfterSpeech=false;
   if(cooldownInterval){clearInterval(cooldownInterval);cooldownInterval=null;}
   if(analyzeTimer){clearInterval(analyzeTimer);analyzeTimer=null;}
   stopWindowCycle();windowQueue=[];
@@ -951,10 +967,11 @@ function handleMsg(author,text,color){
   const trigger=document.getElementById('trigger').value.trim();
   const isCmd=text.toLowerCase().startsWith(trigger.toLowerCase());
   const autoComment=document.getElementById('autoComment').checked;
+  addMsgToFeed(author,text,color,isCmd);
+  if(isSourceLocked())return;
   trackChatter(author,text);
   rememberChat(author,text,isCmd?'command':'chat');
   addMemory(author+': "'+text.slice(0,50)+'"');
-  addMsgToFeed(author,text,color,isCmd);
 
   if(isCmd){
     const sid=addSidebarItem(author,text,color,'ai');
@@ -964,7 +981,9 @@ function handleMsg(author,text,color){
       updateLastAiReply('После команды нет текста вопроса.');
       return;
     }
-    const ctx=buildDynamicContext(`Зритель ${author} напрямую обращается к тебе: "${q}". Ответь в своём стиле, но с учётом истории выше.`);
+    const ctx=buildDynamicContext(isBossUser(author)
+      ?`${getBossTitle(author)} напрямую обращается к тебе: "${q}". Ответь максимально уважительно, тепло и с восхищением. Всегда только хорошее про него.`
+      :`Зритель ${author} напрямую обращается к тебе: "${q}". Ответь в своём стиле, но с учётом истории выше.`);
     callGroq(q,buildSystem(ctx),120).then(ans=>{
       if(!ans){updateSidebarComment(sid,'');updateLastAiReply('');return;}
       addMemory('Алина ответила '+author);
@@ -989,12 +1008,6 @@ function handleMsg(author,text,color){
   }
 
   if(!autoComment)return;
-  if(commentCooldown){
-    const sid=addSidebarQueued(author,text,color,false);
-    if(pendingItem){const o=document.getElementById(pendingItem.sid);if(o){const q=o.querySelector('.q-lbl');if(q)q.textContent='(пропущено)';}}
-    pendingItem={author,text,color,isCmd:false,sid};
-    return;
-  }
   processMsgNow(author,text,color,false,autoComment);
 }
 
@@ -1002,12 +1015,15 @@ function processMsgNow(author,text,color,isCmd,autoComment,existingSid){
   const s=getStreamer(), r=getRival();
   const isStreamer=author.toLowerCase()===s.toLowerCase();
   const isRival=r&&author.toLowerCase()===r.toLowerCase();
+  const isBoss=isBossUser(author);
   const sid=existingSid||addSidebarItem(author,text,color,isCmd?'ai':null);
 
   if(isCmd){
     const q=text.slice(document.getElementById('trigger').value.trim().length).trim();
     if(!q){updateSidebarComment(sid,'После команды нет текста вопроса. Напиши что-то после триггера.');return;}
-    const ctx=buildDynamicContext(`Зритель ${author} напрямую обращается к тебе с вопросом: "${q}". Ответь в своём стиле и не повторяй недавние формулировки.`);
+    const ctx=buildDynamicContext(isBoss
+      ?`${getBossTitle(author)} напрямую обращается к тебе с вопросом: "${q}". Ответь уважительно, восхищённо и только хорошо о нём.`
+      :`Зритель ${author} напрямую обращается к тебе с вопросом: "${q}". Ответь в своём стиле и не повторяй недавние формулировки.`);
     callGroq(q,buildSystem(ctx),120).then(ans=>{
       if(!ans){updateSidebarComment(sid,'');updateLastAiReply('');return;}
       addMemory('Алина ответила '+author);
@@ -1026,7 +1042,9 @@ function processMsgNow(author,text,color,isCmd,autoComment,existingSid){
   if(!autoComment){updateSidebarComment(sid,'Автокомментарии выключены, поэтому ответ пропущен.');return;}
 
   let ctx='';
-  if(isStreamer){
+  if(isBoss){
+    ctx=`${getBossTitle(author)} написал: "${text}". Ответь с уважением и восхищением, подчеркни что он лучший, легенда, босс и очень крутой.`;
+  } else if(isStreamer){
     ctx=`${s} сказал на стриме: "${text}". Отреагируй — флирт, подначивание, или поспорь с ним.`;
   } else if(isRival){
     const flip=Math.random()>0.5;
@@ -1376,6 +1394,10 @@ function startSTT(){
     }
 
     const log=document.getElementById('sttLog');
+    if(isSourceLocked()){
+      const im=log.querySelector('.stt-interim');if(im)im.remove();
+      return;
+    }
 
     if(interim){
       let el=log.querySelector('.stt-interim');
@@ -1476,6 +1498,7 @@ function addSpeechToFeed(name,gender,text){
 }
 
 async function reactToSpeech(phrase,gender){
+  if(isSourceLocked())return;
   const name=resolveSpeakerName(gender);
   const s=getStreamer(),r=getRival();
   const isMale=gender==='male';
@@ -1526,7 +1549,7 @@ function startAnalyzeTimer(){
 }
 
 async function analyzeStream(){
-  if(!screenStream||!connected)return;
+  if(!screenStream||!connected||isSourceLocked())return;
   const now=Date.now();
   if(now-lastAnalyzeTime<15000)return;
   lastAnalyzeTime=now;
@@ -1552,41 +1575,33 @@ async function analyzeStream(){
 
 // ── COOLDOWN ─────────────────────────────────────────────────────
 function startCooldown(){
-  const secs=getCool();if(secs<=0)return;
+  shouldCooldownAfterSpeech=true;
+  if(isSpeaking||mainQueue.length||commentQueue.length)return;
+  const secs=RESPONSE_PAUSE_SEC;
   if(cooldownInterval)clearInterval(cooldownInterval);
-  commentCooldown=true;let rem=secs;
-  setStatus('cool','Пауза '+rem+'с'+(pendingItem?' · есть в очереди':''));
+  commentCooldown=true;pendingItem=null;
+  let rem=secs;
+  setStatus('cool','Пауза '+rem+'с · чат/микрофон/экран ждут');
   cooldownInterval=setInterval(()=>{rem--;
-    if(rem>0){setStatus('cool','Пауза '+rem+'с'+(pendingItem?' · есть в очереди':''));}
-    else{clearInterval(cooldownInterval);cooldownInterval=null;commentCooldown=false;
-      if(pendingItem){const it=pendingItem;pendingItem=null;
-        const queuedItem=document.getElementById(it.sid);
-        if(queuedItem){
-          queuedItem.querySelector('.q-lbl')?.remove();
-          if(!queuedItem.querySelector('.think')){
-            const think=document.createElement('div');
-            think.className='think';
-            think.innerHTML=brandText('????? ??????')+'<span class="tdots"><span>.</span><span>.</span><span>.</span></span>';
-            queuedItem.insertBefore(think,queuedItem.querySelector('.si-orig'));
-          }
-        }
-        processMsgNow(it.author,it.text,it.color,it.isCmd,document.getElementById('autoComment').checked,it.sid);
-      } else if(connected)setStatus('live','Подключено к #'+document.getElementById('channel').value.trim());
+    if(rem>0){setStatus('cool','Пауза '+rem+'с · чат/микрофон/экран ждут');}
+    else{clearInterval(cooldownInterval);cooldownInterval=null;commentCooldown=false;shouldCooldownAfterSpeech=false;
+      if(connected)setStatus('live','Подключено к #'+document.getElementById('channel').value.trim());
     }
   },1000);
 }
 
 // ── TTS ───────────────────────────────────────────────────────────
-function enqueueSpeak(text,sid){mainQueue.push({text,sid});if(!isSpeaking)processNextSpeech();}
+function enqueueSpeak(text,sid){shouldCooldownAfterSpeech=true;mainQueue.push({text,sid});if(!isSpeaking)processNextSpeech();}
 function enqueueNickThenAnswer(nick,answer,sid){
+  shouldCooldownAfterSpeech=true;
   mainQueue.push({text:nick,sid:null,pauseAfter:350});
   mainQueue.push({text:answer,sid});
   if(!isSpeaking)processNextSpeech();
 }
-function enqueueComment(text,sid){commentQueue.push({text,sid});if(!isSpeaking)processNextSpeech();}
+function enqueueComment(text,sid){shouldCooldownAfterSpeech=true;commentQueue.push({text,sid});if(!isSpeaking)processNextSpeech();}
 function processNextSpeech(){
   let item=mainQueue.length?mainQueue.shift():commentQueue.length?commentQueue.shift():null;
-  if(!item){isSpeaking=false;setWave(false);return;}
+  if(!item){isSpeaking=false;setWave(false);if(shouldCooldownAfterSpeech)startCooldown();return;}
   isSpeaking=true;setWave(true);
   if(item.sid)markSpeaking(item.sid,true);
 
