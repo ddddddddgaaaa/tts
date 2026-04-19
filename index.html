@@ -479,10 +479,10 @@ let screenStream=null, screenCanvas=null;
 let analyzeTimer=null;
 let lastAnalyzeTime=0;
 let lastAiBox=null;
-const BOT_NAME='\u0418\u0440\u0438\u043d\u0430';
-const BOT_NAME_LOWER='\u0438\u0440\u0438\u043d\u0430';
-const BOT_NAME_GENITIVE='\u0418\u0440\u0438\u043d\u044b';
-const BOT_TRIGGER='!\u0438\u0440\u0438\u043d\u0430';
+const BOT_NAME='\u0410\u043b\u0438\u043d\u0430';
+const BOT_NAME_LOWER='\u0430\u043b\u0438\u043d\u0430';
+const BOT_NAME_GENITIVE='\u0410\u043b\u0438\u043d\u044b';
+const BOT_TRIGGER='!\u0430\u043b\u0438\u043d\u0430';
 
 // ── HELPERS ───────────────────────────────────────────────────────
 function getKey(){return document.getElementById('apikey').value.trim();}
@@ -1007,7 +1007,7 @@ async function fireEvent(type){
   const s=getStreamer();
   const ctxMap={
     donate:`${user} задонатил(а) ${val}. Отреагируй пошловато-благодарно, поблагодари с вульгарной нежностью. 1-2 предложения.`,
-    sub:`${user} оформил(а) подписку на ${val}. Отреагируй игриво и немного пошло.`,
+    sub:`${user} оформил(а) подписку на ${val}. Отреагуй игриво и немного пошло.`,
     bits:`${user} подарил(а) ${val} битсов. Порадуйся по-своему.`,
     follow:`${user} зафоловил(а) канал. Поприветствуй с подколкой — зачем пришли страдать.`,
     raid:`${user} зарейдил(а) с ${val} зрителями! Поприветствуй рейд в своём стиле.`
@@ -1112,11 +1112,6 @@ async function alinaInterrupt(){
   mainQueue.unshift({text:ans,sidebarId:sid});
   if(!isSpeaking)processNextSpeech();
 }
-
-// ── ЗАХВАТ ЭКРАНА ────────────────────────────────────────────────
-async function toggleScreen(){
-  const vid=document.getElementById('screenVideo');
-  if(screenStream){
     screenStream.getTracks().forEach(t=>t.stop());
     screenStream=null;
     vid.pause();vid.srcObject=null;vid.muted=true;
